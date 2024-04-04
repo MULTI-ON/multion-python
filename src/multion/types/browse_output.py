@@ -18,7 +18,7 @@ class BrowseOutput(pydantic_v1.BaseModel):
     The final status of the browsing session.
     """
 
-    last_url: typing.Optional[str] = pydantic_v1.Field(default=None)
+    url: typing.Optional[str] = pydantic_v1.Field(default=None)
     """
     The last accessed URL during the session.
     """

@@ -5,11 +5,13 @@ import typing
 
 from ...core.datetime_utils import serialize_datetime
 from ...core.pydantic_utilities import pydantic_v1
-from .sessions_retrieve_screenshot_response_response import SessionsRetrieveScreenshotResponseResponse
 
 
 class SessionsRetrieveScreenshotResponse(pydantic_v1.BaseModel):
-    response: SessionsRetrieveScreenshotResponseResponse
+    screenshot: str = pydantic_v1.Field()
+    """
+    A base64 encoded string of the screenshot, empty if not available.
+    """
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

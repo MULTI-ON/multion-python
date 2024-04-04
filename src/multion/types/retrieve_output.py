@@ -5,11 +5,28 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
-from .retrieve_output_response import RetrieveOutputResponse
 
 
 class RetrieveOutput(pydantic_v1.BaseModel):
-    response: RetrieveOutputResponse
+    message: str = pydantic_v1.Field()
+    """
+    information on a webpage based on a user query
+    """
+
+    url: str = pydantic_v1.Field()
+    """
+    The last accessed URL during the session.
+    """
+
+    screenshot: typing.Optional[str] = pydantic_v1.Field(default=None)
+    """
+    image url of the screenshot taken during the session.
+    """
+
+    link_dict: typing.Dict[str, str] = pydantic_v1.Field()
+    """
+    Dictionary of link available on the web page
+    """
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

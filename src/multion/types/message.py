@@ -19,6 +19,11 @@ class Message(pydantic_v1.BaseModel):
     The URL to use for this step.
     """
 
+    local: typing.Optional[bool] = pydantic_v1.Field(default=None)
+    """
+    Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
+    """
+
     stream: typing.Optional[bool] = pydantic_v1.Field(default=None)
     """
     Boolean flag to stream results back to the client (Default: False)
@@ -29,7 +34,7 @@ class Message(pydantic_v1.BaseModel):
     Object containing height and width for the browser screen size.
     """
 
-    include_screenshot: typing.Optional[bool] = pydantic_v1.Field(alias="includeScreenshot", default=None)
+    include_screenshot: typing.Optional[bool] = None
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
@@ -42,7 +47,5 @@ class Message(pydantic_v1.BaseModel):
     class Config:
         frozen = True
         smart_union = True
-        allow_population_by_field_name = True
-        populate_by_name = True
         extra = pydantic_v1.Extra.allow
         json_encoders = {dt.datetime: serialize_datetime}

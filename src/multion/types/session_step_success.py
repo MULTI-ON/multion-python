@@ -5,11 +5,33 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
-from .session_step_success_response import SessionStepSuccessResponse
 
 
 class SessionStepSuccess(pydantic_v1.BaseModel):
-    response: SessionStepSuccessResponse
+    status: str = pydantic_v1.Field()
+    """
+    The current status of the session.
+    """
+
+    message: str = pydantic_v1.Field()
+    """
+    A message providing more details about the session status.
+    """
+
+    session_id: str = pydantic_v1.Field()
+    """
+    The unique identifier for the session.
+    """
+
+    url: str = pydantic_v1.Field()
+    """
+    The URL associated with the session.
+    """
+
+    screenshot: str = pydantic_v1.Field()
+    """
+    A base64 encoded string of the screenshot, empty if not available.
+    """
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

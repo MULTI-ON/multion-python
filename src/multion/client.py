@@ -83,6 +83,7 @@ class MultiOn:
         *,
         cmd: typing.Optional[str] = OMIT,
         url: str,
+        local: typing.Optional[bool] = OMIT,
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -96,6 +97,8 @@ class MultiOn:
             - cmd: typing.Optional[str]. The command for the agent to carry out (Default: www.google.com)
 
             - url: str. The URL to start or continue browsing from.
+
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
 
             - session_id: typing.Optional[str].
 
@@ -119,6 +122,8 @@ class MultiOn:
         _request: typing.Dict[str, typing.Any] = {"url": url}
         if cmd is not OMIT:
             _request["cmd"] = cmd
+        if local is not OMIT:
+            _request["local"] = local
         if session_id is not OMIT:
             _request["session_id"] = session_id
         if max_steps is not OMIT:
@@ -290,6 +295,7 @@ class AsyncMultiOn:
         *,
         cmd: typing.Optional[str] = OMIT,
         url: str,
+        local: typing.Optional[bool] = OMIT,
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -303,6 +309,8 @@ class AsyncMultiOn:
             - cmd: typing.Optional[str]. The command for the agent to carry out (Default: www.google.com)
 
             - url: str. The URL to start or continue browsing from.
+
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
 
             - session_id: typing.Optional[str].
 
@@ -326,6 +334,8 @@ class AsyncMultiOn:
         _request: typing.Dict[str, typing.Any] = {"url": url}
         if cmd is not OMIT:
             _request["cmd"] = cmd
+        if local is not OMIT:
+            _request["local"] = local
         if session_id is not OMIT:
             _request["session_id"] = session_id
         if max_steps is not OMIT:

@@ -7,27 +7,15 @@ from .types import (
     MessageBrowserParams,
     RemoteValue,
     RetrieveOutput,
-    RetrieveOutputResponse,
     SessionCreated,
-    SessionCreatedResponse,
-    SessionCreatedResponseData,
     SessionStepSuccess,
-    SessionStepSuccessResponse,
-    SessionStepSuccessResponseData,
     ValidationError,
     ValidationErrorLocItem,
 )
 from .errors import UnprocessableEntityError
 from . import sessions
 from .environment import MultiOnEnvironment
-from .sessions import (
-    SessionsCloneResponse,
-    SessionsCloneResponseResponse,
-    SessionsListResponse,
-    SessionsListResponseResponse,
-    SessionsRetrieveScreenshotResponse,
-    SessionsRetrieveScreenshotResponseResponse,
-)
+from .sessions import SessionsCloneResponse, SessionsListResponse, SessionsRetrieveScreenshotResponse
 from .version import __version__
 
 __all__ = [
@@ -38,19 +26,11 @@ __all__ = [
     "MultiOnEnvironment",
     "RemoteValue",
     "RetrieveOutput",
-    "RetrieveOutputResponse",
     "SessionCreated",
-    "SessionCreatedResponse",
-    "SessionCreatedResponseData",
     "SessionStepSuccess",
-    "SessionStepSuccessResponse",
-    "SessionStepSuccessResponseData",
     "SessionsCloneResponse",
-    "SessionsCloneResponseResponse",
     "SessionsListResponse",
-    "SessionsListResponseResponse",
     "SessionsRetrieveScreenshotResponse",
-    "SessionsRetrieveScreenshotResponseResponse",
     "UnprocessableEntityError",
     "ValidationError",
     "ValidationErrorLocItem",

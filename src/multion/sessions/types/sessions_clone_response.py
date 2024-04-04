@@ -5,11 +5,18 @@ import typing
 
 from ...core.datetime_utils import serialize_datetime
 from ...core.pydantic_utilities import pydantic_v1
-from .sessions_clone_response_response import SessionsCloneResponseResponse
 
 
 class SessionsCloneResponse(pydantic_v1.BaseModel):
-    response: SessionsCloneResponseResponse
+    status: str = pydantic_v1.Field()
+    """
+    response data
+    """
+
+    session_id: str = pydantic_v1.Field()
+    """
+    The unique identifier for the session, duplicated for convenience.
+    """
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
