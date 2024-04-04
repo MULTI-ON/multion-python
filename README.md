@@ -4,6 +4,10 @@
 
 The MultiOn Python Library provides convenient access to the MultiOn API from applications written in Python.
 
+## Documentation
+
+API reference documentation is available [here](https://multion.docs.buildwithfern.com/).
+
 ## Installation
 Add this dependency to your project's build file:
 
