@@ -7,10 +7,15 @@ from ...core.datetime_utils import serialize_datetime
 from ...core.pydantic_utilities import pydantic_v1
 
 
-class SessionsRetrieveScreenshotResponse(pydantic_v1.BaseModel):
-    screenshot: str = pydantic_v1.Field()
+class SessionsCloseResponse(pydantic_v1.BaseModel):
+    status: str = pydantic_v1.Field()
     """
-    A base64 encoded string of the screenshot, empty if not available.
+    response data
+    """
+
+    session_id: str = pydantic_v1.Field()
+    """
+    The unique identifier for the session, duplicated for convenience.
     """
 
     def json(self, **kwargs: typing.Any) -> str:

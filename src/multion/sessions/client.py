@@ -12,12 +12,12 @@ from ..core.remove_none_from_dict import remove_none_from_dict
 from ..core.request_options import RequestOptions
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.http_validation_error import HttpValidationError
-from ..types.message import Message
 from ..types.session_created import SessionCreated
+from ..types.session_input import SessionInput
 from ..types.session_step_success import SessionStepSuccess
-from .types.sessions_clone_response import SessionsCloneResponse
+from .types.sessions_close_response import SessionsCloseResponse
 from .types.sessions_list_response import SessionsListResponse
-from .types.sessions_retrieve_screenshot_response import SessionsRetrieveScreenshotResponse
+from .types.sessions_screenshot_response import SessionsScreenshotResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -27,30 +27,30 @@ class SessionsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def create(self, *, request: Message, request_options: typing.Optional[RequestOptions] = None) -> SessionCreated:
+    def create(
+        self, *, request: SessionInput, request_options: typing.Optional[RequestOptions] = None
+    ) -> SessionCreated:
         """
         Creates a new session and returns session details including a unique session ID.
 
         Parameters:
-            - request: Message.
+            - request: SessionInput.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import Message
+        from multion import SessionInput
         from multion.client import MultiOn
 
         client = MultiOn(
             api_key="YOUR_API_KEY",
         )
         client.sessions.create(
-            request=Message(
-                url="url",
-            ),
+            request=SessionInput(),
         )
         """
         _response = self._client_wrapper.httpx_client.request(
             "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/session"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "v1/web/session"),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
@@ -87,17 +87,17 @@ class SessionsClient:
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
     def step(
-        self, session_id: str, *, request: Message, request_options: typing.Optional[RequestOptions] = None
+        self, session_id: str, *, request: SessionInput, request_options: typing.Optional[RequestOptions] = None
     ) -> SessionStepSuccess:
         """
         Parameters:
             - session_id: str.
 
-            - request: Message.
+            - request: SessionInput.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import Message
+        from multion import SessionInput
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -105,15 +105,13 @@ class SessionsClient:
         )
         client.sessions.step(
             session_id="session_id",
-            request=Message(
-                url="url",
-            ),
+            request=SessionInput(),
         )
         """
         _response = self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/session/{jsonable_encoder(session_id)}"
+                f"{self._client_wrapper.get_base_url()}/", f"v1/web/session/{jsonable_encoder(session_id)}"
             ),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
@@ -150,9 +148,9 @@ class SessionsClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def clone(
+    def close(
         self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SessionsCloneResponse:
+    ) -> SessionsCloseResponse:
         """
         Parameters:
             - session_id: str.
@@ -164,14 +162,14 @@ class SessionsClient:
         client = MultiOn(
             api_key="YOUR_API_KEY",
         )
-        client.sessions.clone(
+        client.sessions.close(
             session_id="session_id",
         )
         """
         _response = self._client_wrapper.httpx_client.request(
             "DELETE",
             urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/session/{jsonable_encoder(session_id)}"
+                f"{self._client_wrapper.get_base_url()}/", f"v1/web/session/{jsonable_encoder(session_id)}"
             ),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
@@ -191,7 +189,7 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsCloneResponse, _response.json())  # type: ignore
+            return pydantic_v1.parse_obj_as(SessionsCloseResponse, _response.json())  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
@@ -202,46 +200,37 @@ class SessionsClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def retrieve_screenshot(
-        self, session_id: str, *, request: Message, request_options: typing.Optional[RequestOptions] = None
-    ) -> SessionsRetrieveScreenshotResponse:
+    def screenshot(
+        self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> SessionsScreenshotResponse:
         """
         This function is used to get a screenshot for a website.
 
         Parameters:
             - session_id: str.
 
-            - request: Message.
-
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import Message
         from multion.client import MultiOn
 
         client = MultiOn(
             api_key="YOUR_API_KEY",
         )
-        client.sessions.retrieve_screenshot(
+        client.sessions.screenshot(
             session_id="session_id",
-            request=Message(
-                url="url",
-            ),
         )
         """
         _response = self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/screenshot/{jsonable_encoder(session_id)}"
+                f"{self._client_wrapper.get_base_url()}/", f"v1/web/screenshot/{jsonable_encoder(session_id)}"
             ),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
-            json=jsonable_encoder(request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
-            },
+            json=jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))
+            if request_options is not None
+            else None,
             headers=jsonable_encoder(
                 remove_none_from_dict(
                     {
@@ -257,7 +246,7 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsRetrieveScreenshotResponse, _response.json())  # type: ignore
+            return pydantic_v1.parse_obj_as(SessionsScreenshotResponse, _response.json())  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
@@ -282,7 +271,7 @@ class SessionsClient:
         """
         _response = self._client_wrapper.httpx_client.request(
             "GET",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/sessions"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "v1/web/sessions"),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
@@ -314,31 +303,29 @@ class AsyncSessionsClient:
         self._client_wrapper = client_wrapper
 
     async def create(
-        self, *, request: Message, request_options: typing.Optional[RequestOptions] = None
+        self, *, request: SessionInput, request_options: typing.Optional[RequestOptions] = None
     ) -> SessionCreated:
         """
         Creates a new session and returns session details including a unique session ID.
 
         Parameters:
-            - request: Message.
+            - request: SessionInput.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import Message
+        from multion import SessionInput
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
             api_key="YOUR_API_KEY",
         )
         await client.sessions.create(
-            request=Message(
-                url="url",
-            ),
+            request=SessionInput(),
         )
         """
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/session"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "v1/web/session"),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
@@ -375,17 +362,17 @@ class AsyncSessionsClient:
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
     async def step(
-        self, session_id: str, *, request: Message, request_options: typing.Optional[RequestOptions] = None
+        self, session_id: str, *, request: SessionInput, request_options: typing.Optional[RequestOptions] = None
     ) -> SessionStepSuccess:
         """
         Parameters:
             - session_id: str.
 
-            - request: Message.
+            - request: SessionInput.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import Message
+        from multion import SessionInput
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -393,15 +380,13 @@ class AsyncSessionsClient:
         )
         await client.sessions.step(
             session_id="session_id",
-            request=Message(
-                url="url",
-            ),
+            request=SessionInput(),
         )
         """
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/session/{jsonable_encoder(session_id)}"
+                f"{self._client_wrapper.get_base_url()}/", f"v1/web/session/{jsonable_encoder(session_id)}"
             ),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
@@ -438,9 +423,9 @@ class AsyncSessionsClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def clone(
+    async def close(
         self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> SessionsCloneResponse:
+    ) -> SessionsCloseResponse:
         """
         Parameters:
             - session_id: str.
@@ -452,14 +437,14 @@ class AsyncSessionsClient:
         client = AsyncMultiOn(
             api_key="YOUR_API_KEY",
         )
-        await client.sessions.clone(
+        await client.sessions.close(
             session_id="session_id",
         )
         """
         _response = await self._client_wrapper.httpx_client.request(
             "DELETE",
             urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/session/{jsonable_encoder(session_id)}"
+                f"{self._client_wrapper.get_base_url()}/", f"v1/web/session/{jsonable_encoder(session_id)}"
             ),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
@@ -479,7 +464,7 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsCloneResponse, _response.json())  # type: ignore
+            return pydantic_v1.parse_obj_as(SessionsCloseResponse, _response.json())  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
@@ -490,46 +475,37 @@ class AsyncSessionsClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def retrieve_screenshot(
-        self, session_id: str, *, request: Message, request_options: typing.Optional[RequestOptions] = None
-    ) -> SessionsRetrieveScreenshotResponse:
+    async def screenshot(
+        self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> SessionsScreenshotResponse:
         """
         This function is used to get a screenshot for a website.
 
         Parameters:
             - session_id: str.
 
-            - request: Message.
-
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import Message
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
             api_key="YOUR_API_KEY",
         )
-        await client.sessions.retrieve_screenshot(
+        await client.sessions.screenshot(
             session_id="session_id",
-            request=Message(
-                url="url",
-            ),
         )
         """
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
             urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/screenshot/{jsonable_encoder(session_id)}"
+                f"{self._client_wrapper.get_base_url()}/", f"v1/web/screenshot/{jsonable_encoder(session_id)}"
             ),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
-            json=jsonable_encoder(request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
-            },
+            json=jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))
+            if request_options is not None
+            else None,
             headers=jsonable_encoder(
                 remove_none_from_dict(
                     {
@@ -545,7 +521,7 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsRetrieveScreenshotResponse, _response.json())  # type: ignore
+            return pydantic_v1.parse_obj_as(SessionsScreenshotResponse, _response.json())  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
@@ -570,7 +546,7 @@ class AsyncSessionsClient:
         """
         _response = await self._client_wrapper.httpx_client.request(
             "GET",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/sessions"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "v1/web/sessions"),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),

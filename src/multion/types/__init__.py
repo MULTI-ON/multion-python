@@ -2,11 +2,11 @@
 
 from .browse_output import BrowseOutput
 from .http_validation_error import HttpValidationError
-from .message import Message
-from .message_browser_params import MessageBrowserParams
 from .remote_value import RemoteValue
 from .retrieve_output import RetrieveOutput
 from .session_created import SessionCreated
+from .session_input import SessionInput
+from .session_input_browser_params import SessionInputBrowserParams
 from .session_step_success import SessionStepSuccess
 from .validation_error import ValidationError
 from .validation_error_loc_item import ValidationErrorLocItem
@@ -14,11 +14,11 @@ from .validation_error_loc_item import ValidationErrorLocItem
 __all__ = [
     "BrowseOutput",
     "HttpValidationError",
-    "Message",
-    "MessageBrowserParams",
     "RemoteValue",
     "RetrieveOutput",
     "SessionCreated",
+    "SessionInput",
+    "SessionInputBrowserParams",
     "SessionStepSuccess",
     "ValidationError",
     "ValidationErrorLocItem",

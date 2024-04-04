@@ -3,11 +3,11 @@
 from .types import (
     BrowseOutput,
     HttpValidationError,
-    Message,
-    MessageBrowserParams,
     RemoteValue,
     RetrieveOutput,
     SessionCreated,
+    SessionInput,
+    SessionInputBrowserParams,
     SessionStepSuccess,
     ValidationError,
     ValidationErrorLocItem,
@@ -15,22 +15,22 @@ from .types import (
 from .errors import UnprocessableEntityError
 from . import sessions
 from .environment import MultiOnEnvironment
-from .sessions import SessionsCloneResponse, SessionsListResponse, SessionsRetrieveScreenshotResponse
+from .sessions import SessionsCloseResponse, SessionsListResponse, SessionsScreenshotResponse
 from .version import __version__
 
 __all__ = [
     "BrowseOutput",
     "HttpValidationError",
-    "Message",
-    "MessageBrowserParams",
     "MultiOnEnvironment",
     "RemoteValue",
     "RetrieveOutput",
     "SessionCreated",
+    "SessionInput",
+    "SessionInputBrowserParams",
     "SessionStepSuccess",
-    "SessionsCloneResponse",
+    "SessionsCloseResponse",
     "SessionsListResponse",
-    "SessionsRetrieveScreenshotResponse",
+    "SessionsScreenshotResponse",
     "UnprocessableEntityError",
     "ValidationError",
     "ValidationErrorLocItem",

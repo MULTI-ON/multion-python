@@ -18,8 +18,6 @@ from .errors.unprocessable_entity_error import UnprocessableEntityError
 from .sessions.client import AsyncSessionsClient, SessionsClient
 from .types.browse_output import BrowseOutput
 from .types.http_validation_error import HttpValidationError
-from .types.message import Message
-from .types.retrieve_output import RetrieveOutput
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -81,7 +79,7 @@ class MultiOn:
     def browse(
         self,
         *,
-        cmd: typing.Optional[str] = OMIT,
+        cmd: str,
         url: str,
         local: typing.Optional[bool] = OMIT,
         session_id: typing.Optional[str] = OMIT,
@@ -91,10 +89,10 @@ class MultiOn:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
         """
-        Allows for browsing the web using detailed natural language instructions. The function supports session continuation, automatic query generation, and iterative instruction execution based on the `CONTINUE` status.
+        Allows for browsing the web using detailed natural language instructions. The function supports multi-step command execution based on the `CONTINUE` status.
 
         Parameters:
-            - cmd: typing.Optional[str]. The command for the agent to carry out (Default: www.google.com)
+            - cmd: str. The command for the agent to carry out (Default: www.google.com)
 
             - url: str. The URL to start or continue browsing from.
 
@@ -116,12 +114,11 @@ class MultiOn:
             api_key="YOUR_API_KEY",
         )
         client.browse(
+            cmd="cmd",
             url="url",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"url": url}
-        if cmd is not OMIT:
-            _request["cmd"] = cmd
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "url": url}
         if local is not OMIT:
             _request["local"] = local
         if session_id is not OMIT:
@@ -134,7 +131,7 @@ class MultiOn:
             _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
             "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/browse"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "v1/web/browse"),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
@@ -160,72 +157,6 @@ class MultiOn:
         )
         if 200 <= _response.status_code < 300:
             return pydantic_v1.parse_obj_as(BrowseOutput, _response.json())  # type: ignore
-        if _response.status_code == 422:
-            raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
-            )
-        try:
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, body=_response.text)
-        raise ApiError(status_code=_response.status_code, body=_response_json)
-
-    def retrieve(
-        self, session_id: str, *, request: Message, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveOutput:
-        """
-        Retrieve information on a webpage based on a user query and url
-
-        Parameters:
-            - session_id: str.
-
-            - request: Message.
-
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
-        from multion import Message
-        from multion.client import MultiOn
-
-        client = MultiOn(
-            api_key="YOUR_API_KEY",
-        )
-        client.retrieve(
-            session_id="session_id",
-            request=Message(
-                url="url",
-            ),
-        )
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "POST",
-            urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/retrieve/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
-            },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
-        )
-        if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(RetrieveOutput, _response.json())  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
@@ -293,7 +224,7 @@ class AsyncMultiOn:
     async def browse(
         self,
         *,
-        cmd: typing.Optional[str] = OMIT,
+        cmd: str,
         url: str,
         local: typing.Optional[bool] = OMIT,
         session_id: typing.Optional[str] = OMIT,
@@ -303,10 +234,10 @@ class AsyncMultiOn:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
         """
-        Allows for browsing the web using detailed natural language instructions. The function supports session continuation, automatic query generation, and iterative instruction execution based on the `CONTINUE` status.
+        Allows for browsing the web using detailed natural language instructions. The function supports multi-step command execution based on the `CONTINUE` status.
 
         Parameters:
-            - cmd: typing.Optional[str]. The command for the agent to carry out (Default: www.google.com)
+            - cmd: str. The command for the agent to carry out (Default: www.google.com)
 
             - url: str. The URL to start or continue browsing from.
 
@@ -328,12 +259,11 @@ class AsyncMultiOn:
             api_key="YOUR_API_KEY",
         )
         await client.browse(
+            cmd="cmd",
             url="url",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"url": url}
-        if cmd is not OMIT:
-            _request["cmd"] = cmd
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "url": url}
         if local is not OMIT:
             _request["local"] = local
         if session_id is not OMIT:
@@ -346,7 +276,7 @@ class AsyncMultiOn:
             _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
             "POST",
-            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/browse"),
+            urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "v1/web/browse"),
             params=jsonable_encoder(
                 request_options.get("additional_query_parameters") if request_options is not None else None
             ),
@@ -372,72 +302,6 @@ class AsyncMultiOn:
         )
         if 200 <= _response.status_code < 300:
             return pydantic_v1.parse_obj_as(BrowseOutput, _response.json())  # type: ignore
-        if _response.status_code == 422:
-            raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
-            )
-        try:
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, body=_response.text)
-        raise ApiError(status_code=_response.status_code, body=_response_json)
-
-    async def retrieve(
-        self, session_id: str, *, request: Message, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveOutput:
-        """
-        Retrieve information on a webpage based on a user query and url
-
-        Parameters:
-            - session_id: str.
-
-            - request: Message.
-
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
-        from multion import Message
-        from multion.client import AsyncMultiOn
-
-        client = AsyncMultiOn(
-            api_key="YOUR_API_KEY",
-        )
-        await client.retrieve(
-            session_id="session_id",
-            request=Message(
-                url="url",
-            ),
-        )
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "POST",
-            urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"api/v1/retrieve/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
-            },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
-        )
-        if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(RetrieveOutput, _response.json())  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore

@@ -8,7 +8,7 @@ from ..core.pydantic_utilities import pydantic_v1
 
 
 class BrowseOutput(pydantic_v1.BaseModel):
-    message: typing.Optional[str] = pydantic_v1.Field(default=None)
+    message: str = pydantic_v1.Field()
     """
     The final message or result of the browsing session.
     """
@@ -18,14 +18,14 @@ class BrowseOutput(pydantic_v1.BaseModel):
     The final status of the browsing session.
     """
 
-    url: typing.Optional[str] = pydantic_v1.Field(default=None)
+    url: str = pydantic_v1.Field()
     """
-    The last accessed URL during the session.
+    The current URL of the session.
     """
 
-    page_content: typing.Optional[str] = pydantic_v1.Field(default=None)
+    page_content: str = pydantic_v1.Field()
     """
-    Extracted text content from the final page.
+    Extracted text content from the current page.
     """
 
     screenshot: str = pydantic_v1.Field()

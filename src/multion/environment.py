@@ -4,4 +4,4 @@ import enum
 
 
 class MultiOnEnvironment(enum.Enum):
-    DEFAULT = "https://api.multion.ai/public"
+    DEFAULT = "https://api.multion.ai/v1/web"

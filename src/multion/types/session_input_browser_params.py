@@ -5,36 +5,15 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
-from .message_browser_params import MessageBrowserParams
 
 
-class Message(pydantic_v1.BaseModel):
-    cmd: typing.Optional[str] = pydantic_v1.Field(default=None)
-    """
-    A specific natural language instruction for the next step.
-    """
-
-    url: str = pydantic_v1.Field()
-    """
-    The URL to use for this step.
-    """
-
-    local: typing.Optional[bool] = pydantic_v1.Field(default=None)
-    """
-    Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
-    """
-
-    stream: typing.Optional[bool] = pydantic_v1.Field(default=None)
-    """
-    Boolean flag to stream results back to the client (Default: False)
-    """
-
-    browser_params: typing.Optional[MessageBrowserParams] = pydantic_v1.Field(default=None)
+class SessionInputBrowserParams(pydantic_v1.BaseModel):
     """
     Object containing height and width for the browser screen size.
     """
 
-    include_screenshot: typing.Optional[bool] = None
+    height: typing.Optional[float] = None
+    width: typing.Optional[float] = None
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

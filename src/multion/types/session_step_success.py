@@ -30,7 +30,7 @@ class SessionStepSuccess(pydantic_v1.BaseModel):
 
     screenshot: str = pydantic_v1.Field()
     """
-    A base64 encoded string of the screenshot, empty if not available.
+    image url of the screenshot taken during the session.
     """
 
     def json(self, **kwargs: typing.Any) -> str:
