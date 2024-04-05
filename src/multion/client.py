@@ -14,10 +14,16 @@ from .core.pydantic_utilities import pydantic_v1
 from .core.remove_none_from_dict import remove_none_from_dict
 from .core.request_options import RequestOptions
 from .environment import MultiOnEnvironment
+from .errors.bad_request_error import BadRequestError
+from .errors.internal_server_error import InternalServerError
+from .errors.unauthorized_error import UnauthorizedError
 from .errors.unprocessable_entity_error import UnprocessableEntityError
 from .sessions.client import AsyncSessionsClient, SessionsClient
+from .types.bad_request_response import BadRequestResponse
 from .types.browse_output import BrowseOutput
 from .types.http_validation_error import HttpValidationError
+from .types.internal_server_error_response import InternalServerErrorResponse
+from .types.unauthorized_response import UnauthorizedResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -80,11 +86,10 @@ class MultiOn:
         self,
         *,
         cmd: str,
-        url: str,
+        url: typing.Optional[str] = OMIT,
         local: typing.Optional[bool] = OMIT,
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
@@ -92,19 +97,17 @@ class MultiOn:
         Allows for browsing the web using detailed natural language instructions. The function supports multi-step command execution based on the `CONTINUE` status.
 
         Parameters:
-            - cmd: str. The command for the agent to carry out (Default: www.google.com)
+            - cmd: str. A specific natural language instruction for the agent to execute
 
-            - url: str. The URL to start or continue browsing from.
+            - url: typing.Optional[str]. The URL to start or continue browsing from. (Default: google.com)
 
             - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
 
-            - session_id: typing.Optional[str].
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
 
             - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
 
-            - stream: typing.Optional[bool]. Boolean flag to stream results back to the client (Default: False)
-
-            - include_screenshot: typing.Optional[bool].
+            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
@@ -115,18 +118,17 @@ class MultiOn:
         )
         client.browse(
             cmd="cmd",
-            url="url",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "url": url}
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if url is not OMIT:
+            _request["url"] = url
         if local is not OMIT:
             _request["local"] = local
         if session_id is not OMIT:
             _request["session_id"] = session_id
         if max_steps is not OMIT:
             _request["max_steps"] = max_steps
-        if stream is not OMIT:
-            _request["stream"] = stream
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
@@ -157,9 +159,17 @@ class MultiOn:
         )
         if 200 <= _response.status_code < 300:
             return pydantic_v1.parse_obj_as(BrowseOutput, _response.json())  # type: ignore
+        if _response.status_code == 400:
+            raise BadRequestError(pydantic_v1.parse_obj_as(BadRequestResponse, _response.json()))  # type: ignore
+        if _response.status_code == 401:
+            raise UnauthorizedError(pydantic_v1.parse_obj_as(UnauthorizedResponse, _response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+            )
+        if _response.status_code == 500:
+            raise InternalServerError(
+                pydantic_v1.parse_obj_as(InternalServerErrorResponse, _response.json())  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -225,11 +235,10 @@ class AsyncMultiOn:
         self,
         *,
         cmd: str,
-        url: str,
+        url: typing.Optional[str] = OMIT,
         local: typing.Optional[bool] = OMIT,
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
@@ -237,19 +246,17 @@ class AsyncMultiOn:
         Allows for browsing the web using detailed natural language instructions. The function supports multi-step command execution based on the `CONTINUE` status.
 
         Parameters:
-            - cmd: str. The command for the agent to carry out (Default: www.google.com)
+            - cmd: str. A specific natural language instruction for the agent to execute
 
-            - url: str. The URL to start or continue browsing from.
+            - url: typing.Optional[str]. The URL to start or continue browsing from. (Default: google.com)
 
             - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
 
-            - session_id: typing.Optional[str].
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
 
             - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
 
-            - stream: typing.Optional[bool]. Boolean flag to stream results back to the client (Default: False)
-
-            - include_screenshot: typing.Optional[bool].
+            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
@@ -260,18 +267,17 @@ class AsyncMultiOn:
         )
         await client.browse(
             cmd="cmd",
-            url="url",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "url": url}
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if url is not OMIT:
+            _request["url"] = url
         if local is not OMIT:
             _request["local"] = local
         if session_id is not OMIT:
             _request["session_id"] = session_id
         if max_steps is not OMIT:
             _request["max_steps"] = max_steps
-        if stream is not OMIT:
-            _request["stream"] = stream
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
@@ -302,9 +308,17 @@ class AsyncMultiOn:
         )
         if 200 <= _response.status_code < 300:
             return pydantic_v1.parse_obj_as(BrowseOutput, _response.json())  # type: ignore
+        if _response.status_code == 400:
+            raise BadRequestError(pydantic_v1.parse_obj_as(BadRequestResponse, _response.json()))  # type: ignore
+        if _response.status_code == 401:
+            raise UnauthorizedError(pydantic_v1.parse_obj_as(UnauthorizedResponse, _response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+            )
+        if _response.status_code == 500:
+            raise InternalServerError(
+                pydantic_v1.parse_obj_as(InternalServerErrorResponse, _response.json())  # type: ignore
             )
         try:
             _response_json = _response.json()

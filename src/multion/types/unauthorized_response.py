@@ -7,31 +7,10 @@ from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
 
 
-class BrowseOutput(pydantic_v1.BaseModel):
-    message: str = pydantic_v1.Field()
-    """
-    The final message or result of the browsing session.
-    """
-
-    status: str = pydantic_v1.Field()
-    """
-    The final status of the browsing session.
-    """
-
-    url: str = pydantic_v1.Field()
-    """
-    The current URL of the session.
-    """
-
-    screenshot: str = pydantic_v1.Field()
-    """
-    image url of the screenshot taken during the session.
-    """
-
-    session_id: str = pydantic_v1.Field()
-    """
-    The unique identifier for the session.
-    """
+class UnauthorizedResponse(pydantic_v1.BaseModel):
+    status_code: typing.Optional[int] = pydantic_v1.Field(alias="statusCode", default=None)
+    error: typing.Optional[str] = None
+    message: typing.Optional[str] = None
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
@@ -44,5 +23,7 @@ class BrowseOutput(pydantic_v1.BaseModel):
     class Config:
         frozen = True
         smart_union = True
+        allow_population_by_field_name = True
+        populate_by_name = True
         extra = pydantic_v1.Extra.allow
         json_encoders = {dt.datetime: serialize_datetime}

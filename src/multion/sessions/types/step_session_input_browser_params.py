@@ -3,11 +3,11 @@
 import datetime as dt
 import typing
 
-from ..core.datetime_utils import serialize_datetime
-from ..core.pydantic_utilities import pydantic_v1
+from ...core.datetime_utils import serialize_datetime
+from ...core.pydantic_utilities import pydantic_v1
 
 
-class SessionInputBrowserParams(pydantic_v1.BaseModel):
+class StepSessionInputBrowserParams(pydantic_v1.BaseModel):
     """
     Object containing height and width for the browser screen size.
     """

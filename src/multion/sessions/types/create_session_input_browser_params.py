@@ -3,35 +3,17 @@
 import datetime as dt
 import typing
 
-from ..core.datetime_utils import serialize_datetime
-from ..core.pydantic_utilities import pydantic_v1
+from ...core.datetime_utils import serialize_datetime
+from ...core.pydantic_utilities import pydantic_v1
 
 
-class BrowseOutput(pydantic_v1.BaseModel):
-    message: str = pydantic_v1.Field()
+class CreateSessionInputBrowserParams(pydantic_v1.BaseModel):
     """
-    The final message or result of the browsing session.
-    """
-
-    status: str = pydantic_v1.Field()
-    """
-    The final status of the browsing session.
+    Object containing height and width for the browser screen size.
     """
 
-    url: str = pydantic_v1.Field()
-    """
-    The current URL of the session.
-    """
-
-    screenshot: str = pydantic_v1.Field()
-    """
-    image url of the screenshot taken during the session.
-    """
-
-    session_id: str = pydantic_v1.Field()
-    """
-    The unique identifier for the session.
-    """
+    height: typing.Optional[float] = None
+    width: typing.Optional[float] = None
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
