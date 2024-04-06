@@ -117,7 +117,8 @@ class MultiOn:
             api_key="YOUR_API_KEY",
         )
         client.browse(
-            cmd="cmd",
+            cmd="find the top post on hackernews",
+            url="https://news.ycombinator.com/",
         )
         """
         _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
@@ -266,7 +267,8 @@ class AsyncMultiOn:
             api_key="YOUR_API_KEY",
         )
         await client.browse(
-            cmd="cmd",
+            cmd="find the top post on hackernews",
+            url="https://news.ycombinator.com/",
         )
         """
         _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
