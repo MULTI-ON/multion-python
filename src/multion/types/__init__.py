@@ -4,6 +4,7 @@ from .bad_request_response import BadRequestResponse
 from .browse_output import BrowseOutput
 from .http_validation_error import HttpValidationError
 from .internal_server_error_response import InternalServerErrorResponse
+from .metadata import Metadata
 from .payment_required_response import PaymentRequiredResponse
 from .remote_value import RemoteValue
 from .retrieve_output import RetrieveOutput
@@ -18,6 +19,7 @@ __all__ = [
     "BrowseOutput",
     "HttpValidationError",
     "InternalServerErrorResponse",
+    "Metadata",
     "PaymentRequiredResponse",
     "RemoteValue",
     "RetrieveOutput",

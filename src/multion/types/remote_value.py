@@ -5,9 +5,10 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
+from ..core.unchecked_base_model import UncheckedBaseModel
 
 
-class RemoteValue(pydantic_v1.BaseModel):
+class RemoteValue(UncheckedBaseModel):
     value: bool
 
     def json(self, **kwargs: typing.Any) -> str:

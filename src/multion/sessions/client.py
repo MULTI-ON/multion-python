@@ -7,9 +7,9 @@ from json.decoder import JSONDecodeError
 from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.jsonable_encoder import jsonable_encoder
-from ..core.pydantic_utilities import pydantic_v1
 from ..core.remove_none_from_dict import remove_none_from_dict
 from ..core.request_options import RequestOptions
+from ..core.unchecked_base_model import construct_type
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.http_validation_error import HttpValidationError
 from ..types.session_created import SessionCreated
@@ -94,10 +94,10 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionCreated, _response.json())  # type: ignore
+            return typing.cast(SessionCreated, construct_type(type_=SessionCreated, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -180,10 +180,10 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionStepSuccess, _response.json())  # type: ignore
+            return typing.cast(SessionStepSuccess, construct_type(type_=SessionStepSuccess, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -232,10 +232,10 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsCloseResponse, _response.json())  # type: ignore
+            return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -286,10 +286,10 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsScreenshotResponse, _response.json())  # type: ignore
+            return typing.cast(SessionsScreenshotResponse, construct_type(type_=SessionsScreenshotResponse, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -332,7 +332,7 @@ class SessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsListResponse, _response.json())  # type: ignore
+            return typing.cast(SessionsListResponse, construct_type(type_=SessionsListResponse, object_=_response.json()))  # type: ignore
         try:
             _response_json = _response.json()
         except JSONDecodeError:
@@ -410,10 +410,10 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionCreated, _response.json())  # type: ignore
+            return typing.cast(SessionCreated, construct_type(type_=SessionCreated, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -496,10 +496,10 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionStepSuccess, _response.json())  # type: ignore
+            return typing.cast(SessionStepSuccess, construct_type(type_=SessionStepSuccess, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -548,10 +548,10 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsCloseResponse, _response.json())  # type: ignore
+            return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -602,10 +602,10 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsScreenshotResponse, _response.json())  # type: ignore
+            return typing.cast(SessionsScreenshotResponse, construct_type(type_=SessionsScreenshotResponse, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -648,7 +648,7 @@ class AsyncSessionsClient:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(SessionsListResponse, _response.json())  # type: ignore
+            return typing.cast(SessionsListResponse, construct_type(type_=SessionsListResponse, object_=_response.json()))  # type: ignore
         try:
             _response_json = _response.json()
         except JSONDecodeError:

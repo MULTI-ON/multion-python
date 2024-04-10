@@ -10,9 +10,9 @@ import httpx
 from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.jsonable_encoder import jsonable_encoder
-from .core.pydantic_utilities import pydantic_v1
 from .core.remove_none_from_dict import remove_none_from_dict
 from .core.request_options import RequestOptions
+from .core.unchecked_base_model import construct_type
 from .environment import MultiOnEnvironment
 from .errors.bad_request_error import BadRequestError
 from .errors.internal_server_error import InternalServerError
@@ -159,18 +159,22 @@ class MultiOn:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(BrowseOutput, _response.json())  # type: ignore
+            return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
         if _response.status_code == 400:
-            raise BadRequestError(pydantic_v1.parse_obj_as(BadRequestResponse, _response.json()))  # type: ignore
+            raise BadRequestError(
+                typing.cast(BadRequestResponse, construct_type(type_=BadRequestResponse, object_=_response.json()))  # type: ignore
+            )
         if _response.status_code == 401:
-            raise UnauthorizedError(pydantic_v1.parse_obj_as(UnauthorizedResponse, _response.json()))  # type: ignore
+            raise UnauthorizedError(
+                typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
+            )
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         if _response.status_code == 500:
             raise InternalServerError(
-                pydantic_v1.parse_obj_as(InternalServerErrorResponse, _response.json())  # type: ignore
+                typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
@@ -309,18 +313,22 @@ class AsyncMultiOn:
             max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
         )
         if 200 <= _response.status_code < 300:
-            return pydantic_v1.parse_obj_as(BrowseOutput, _response.json())  # type: ignore
+            return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
         if _response.status_code == 400:
-            raise BadRequestError(pydantic_v1.parse_obj_as(BadRequestResponse, _response.json()))  # type: ignore
+            raise BadRequestError(
+                typing.cast(BadRequestResponse, construct_type(type_=BadRequestResponse, object_=_response.json()))  # type: ignore
+            )
         if _response.status_code == 401:
-            raise UnauthorizedError(pydantic_v1.parse_obj_as(UnauthorizedResponse, _response.json()))  # type: ignore
+            raise UnauthorizedError(
+                typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
+            )
         if _response.status_code == 422:
             raise UnprocessableEntityError(
-                pydantic_v1.parse_obj_as(HttpValidationError, _response.json())  # type: ignore
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         if _response.status_code == 500:
             raise InternalServerError(
-                pydantic_v1.parse_obj_as(InternalServerErrorResponse, _response.json())  # type: ignore
+                typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()

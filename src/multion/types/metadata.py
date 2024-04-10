@@ -3,15 +3,24 @@
 import datetime as dt
 import typing
 
-from ...core.datetime_utils import serialize_datetime
-from ...core.pydantic_utilities import pydantic_v1
-from ...core.unchecked_base_model import UncheckedBaseModel
+from ..core.datetime_utils import serialize_datetime
+from ..core.pydantic_utilities import pydantic_v1
+from ..core.unchecked_base_model import UncheckedBaseModel
 
 
-class SessionsListResponse(UncheckedBaseModel):
-    session_ids: typing.List[str] = pydantic_v1.Field()
+class Metadata(UncheckedBaseModel):
     """
-    The list of active session IDs.
+    Additional metadata for the session
+    """
+
+    step_count: typing.Optional[int] = pydantic_v1.Field(default=None)
+    """
+    Number of steps executed to complete browse request.
+    """
+
+    processing_time: typing.Optional[int] = pydantic_v1.Field(default=None)
+    """
+    Time taken to process the request in seconds.
     """
 
     def json(self, **kwargs: typing.Any) -> str:

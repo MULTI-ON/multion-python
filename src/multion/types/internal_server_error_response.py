@@ -5,9 +5,10 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
+from ..core.unchecked_base_model import UncheckedBaseModel
 
 
-class InternalServerErrorResponse(pydantic_v1.BaseModel):
+class InternalServerErrorResponse(UncheckedBaseModel):
     status_code: typing.Optional[int] = pydantic_v1.Field(alias="statusCode", default=None)
     error: typing.Optional[str] = None
     message: typing.Optional[str] = None

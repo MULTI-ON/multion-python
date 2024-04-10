@@ -5,9 +5,11 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
+from ..core.unchecked_base_model import UncheckedBaseModel
+from .metadata import Metadata
 
 
-class BrowseOutput(pydantic_v1.BaseModel):
+class BrowseOutput(UncheckedBaseModel):
     message: str = pydantic_v1.Field()
     """
     The final message or result of the browsing session.
@@ -31,6 +33,11 @@ class BrowseOutput(pydantic_v1.BaseModel):
     session_id: str = pydantic_v1.Field()
     """
     The unique identifier for the session.
+    """
+
+    metadata: typing.Optional[Metadata] = pydantic_v1.Field(default=None)
+    """
+    Additional metadata for the session
     """
 
     def json(self, **kwargs: typing.Any) -> str:

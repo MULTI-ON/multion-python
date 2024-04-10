@@ -5,9 +5,10 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
+from ..core.unchecked_base_model import UncheckedBaseModel
 
 
-class RetrieveOutput(pydantic_v1.BaseModel):
+class RetrieveOutput(UncheckedBaseModel):
     message: str = pydantic_v1.Field()
     """
     information on a webpage based on a user query
