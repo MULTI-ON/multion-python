@@ -5,7 +5,8 @@ from .types import (
     SessionsCloseResponse,
     SessionsListResponse,
     SessionsScreenshotResponse,
-    StepSessionInputBrowserParams,
+    SessionsStepRequestBrowserParams,
+    SessionsStepStreamRequestBrowserParams,
 )
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "SessionsCloseResponse",
     "SessionsListResponse",
     "SessionsScreenshotResponse",
-    "StepSessionInputBrowserParams",
+    "SessionsStepRequestBrowserParams",
+    "SessionsStepStreamRequestBrowserParams",
 ]

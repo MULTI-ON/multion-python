@@ -3,18 +3,30 @@
 import datetime as dt
 import typing
 
-from ...core.datetime_utils import serialize_datetime
-from ...core.pydantic_utilities import pydantic_v1
-from ...core.unchecked_base_model import UncheckedBaseModel
+from ..core.datetime_utils import serialize_datetime
+from ..core.pydantic_utilities import pydantic_v1
+from ..core.unchecked_base_model import UncheckedBaseModel
 
 
-class StepSessionInputBrowserParams(UncheckedBaseModel):
+class SessionStreamChunkFinalEventDataDelta(UncheckedBaseModel):
     """
-    Object containing height and width for the browser screen size.
+    The final delta object for the session.
     """
 
-    height: typing.Optional[float] = None
-    width: typing.Optional[float] = None
+    content: str = pydantic_v1.Field()
+    """
+    A message providing more details about the session status.
+    """
+
+    url: str = pydantic_v1.Field()
+    """
+    The URL associated with the session.
+    """
+
+    status: str = pydantic_v1.Field()
+    """
+    The current status of the session.
+    """
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
