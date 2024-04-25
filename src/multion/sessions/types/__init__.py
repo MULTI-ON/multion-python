@@ -4,12 +4,14 @@ from .create_session_input_browser_params import CreateSessionInputBrowserParams
 from .sessions_close_response import SessionsCloseResponse
 from .sessions_list_response import SessionsListResponse
 from .sessions_screenshot_response import SessionsScreenshotResponse
-from .step_session_input_browser_params import StepSessionInputBrowserParams
+from .sessions_step_request_browser_params import SessionsStepRequestBrowserParams
+from .sessions_step_stream_request_browser_params import SessionsStepStreamRequestBrowserParams
 
 __all__ = [
     "CreateSessionInputBrowserParams",
     "SessionsCloseResponse",
     "SessionsListResponse",
     "SessionsScreenshotResponse",
-    "StepSessionInputBrowserParams",
+    "SessionsStepRequestBrowserParams",
+    "SessionsStepStreamRequestBrowserParams",
 ]
