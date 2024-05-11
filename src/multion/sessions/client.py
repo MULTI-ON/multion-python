@@ -15,6 +15,8 @@ from ..core.request_options import RequestOptions
 from ..core.unchecked_base_model import construct_type
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.http_validation_error import HttpValidationError
+from ..types.optional_params import OptionalParams
+from ..types.retrieve_output import RetrieveOutput
 from ..types.session_created import SessionCreated
 from ..types.session_step_stream_chunk import SessionStepStreamChunk
 from ..types.session_step_success import SessionStepSuccess
@@ -117,6 +119,7 @@ class SessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[SessionStepStreamChunk]:
@@ -132,11 +135,13 @@ class SessionsClient:
 
             - browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams]. Object containing height and width for the browser screen size.
 
+            - optional_params: typing.Optional[OptionalParams].
+
             - include_screenshot: typing.Optional[bool].
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import SessionsStepStreamRequestBrowserParams
+        from multion import OptionalParams, SessionsStepStreamRequestBrowserParams
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -150,6 +155,9 @@ class SessionsClient:
                 height=1.1,
                 width=1.1,
             ),
+            optional_params=OptionalParams(
+                temperture=1.1,
+            ),
             include_screenshot=True,
         )
         """
@@ -158,6 +166,8 @@ class SessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if optional_params is not OMIT:
+            _request["optional_params"] = optional_params
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         with self._client_wrapper.httpx_client.stream(
@@ -211,6 +221,7 @@ class SessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepRequestBrowserParams] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
@@ -225,6 +236,8 @@ class SessionsClient:
             - url: typing.Optional[str]. The URL to create or continue session from.
 
             - browser_params: typing.Optional[SessionsStepRequestBrowserParams]. Object containing height and width for the browser screen size.
+
+            - optional_params: typing.Optional[OptionalParams].
 
             - include_screenshot: typing.Optional[bool].
 
@@ -245,6 +258,8 @@ class SessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if optional_params is not OMIT:
+            _request["optional_params"] = optional_params
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
@@ -331,6 +346,98 @@ class SessionsClient:
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
+        if _response.status_code == 422:
+            raise UnprocessableEntityError(
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+            )
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    def retrieve(
+        self,
+        *,
+        cmd: str,
+        session_id: typing.Optional[str] = OMIT,
+        page_number: typing.Optional[int] = OMIT,
+        url: typing.Optional[str] = OMIT,
+        fields: typing.Optional[str] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        """
+        Retrieve data from webpage based on a url and command that guides agents data extraction process.
+
+        Parameters:
+            - cmd: str. A specific natural language instruction on data the agent should extract.
+
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+
+            - page_number: typing.Optional[int]. The page number to retrieve data from. where page is a viewport of the browser.
+
+            - url: typing.Optional[str]. The URL to create or continue session from.
+
+            - fields: typing.Optional[str]. list of comma separated fields you would like extracted from the page
+
+            - format: typing.Optional[typing.Literal["json"]].
+
+            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response.
+
+            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
+        ---
+        from multion.client import MultiOn
+
+        client = MultiOn(
+            api_key="YOUR_API_KEY",
+        )
+        client.sessions.retrieve(
+            cmd="cmd",
+        )
+        """
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if session_id is not OMIT:
+            _request["session_id"] = session_id
+        if page_number is not OMIT:
+            _request["page_number"] = page_number
+        if url is not OMIT:
+            _request["url"] = url
+        if fields is not OMIT:
+            _request["fields"] = fields
+        if format is not OMIT:
+            _request["format"] = format
+        if include_screenshot is not OMIT:
+            _request["include_screenshot"] = include_screenshot
+        _response = self._client_wrapper.httpx_client.request(
+            method="POST",
+            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
+            params=jsonable_encoder(
+                request_options.get("additional_query_parameters") if request_options is not None else None
+            ),
+            json=jsonable_encoder(_request)
+            if request_options is None or request_options.get("additional_body_parameters") is None
+            else {
+                **jsonable_encoder(_request),
+                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            },
+            headers=jsonable_encoder(
+                remove_none_from_dict(
+                    {
+                        **self._client_wrapper.get_headers(),
+                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
+                    }
+                )
+            ),
+            timeout=request_options.get("timeout_in_seconds")
+            if request_options is not None and request_options.get("timeout_in_seconds") is not None
+            else self._client_wrapper.get_timeout(),
+            retries=0,
+            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+        )
+        if 200 <= _response.status_code < 300:
+            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
@@ -526,6 +633,7 @@ class AsyncSessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[SessionStepStreamChunk]:
@@ -541,11 +649,13 @@ class AsyncSessionsClient:
 
             - browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams]. Object containing height and width for the browser screen size.
 
+            - optional_params: typing.Optional[OptionalParams].
+
             - include_screenshot: typing.Optional[bool].
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
-        from multion import SessionsStepStreamRequestBrowserParams
+        from multion import OptionalParams, SessionsStepStreamRequestBrowserParams
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -559,6 +669,9 @@ class AsyncSessionsClient:
                 height=1.1,
                 width=1.1,
             ),
+            optional_params=OptionalParams(
+                temperture=1.1,
+            ),
             include_screenshot=True,
         )
         """
@@ -567,6 +680,8 @@ class AsyncSessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if optional_params is not OMIT:
+            _request["optional_params"] = optional_params
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         async with self._client_wrapper.httpx_client.stream(
@@ -620,6 +735,7 @@ class AsyncSessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepRequestBrowserParams] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
@@ -634,6 +750,8 @@ class AsyncSessionsClient:
             - url: typing.Optional[str]. The URL to create or continue session from.
 
             - browser_params: typing.Optional[SessionsStepRequestBrowserParams]. Object containing height and width for the browser screen size.
+
+            - optional_params: typing.Optional[OptionalParams].
 
             - include_screenshot: typing.Optional[bool].
 
@@ -654,6 +772,8 @@ class AsyncSessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if optional_params is not OMIT:
+            _request["optional_params"] = optional_params
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
@@ -740,6 +860,98 @@ class AsyncSessionsClient:
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
+        if _response.status_code == 422:
+            raise UnprocessableEntityError(
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+            )
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def retrieve(
+        self,
+        *,
+        cmd: str,
+        session_id: typing.Optional[str] = OMIT,
+        page_number: typing.Optional[int] = OMIT,
+        url: typing.Optional[str] = OMIT,
+        fields: typing.Optional[str] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        """
+        Retrieve data from webpage based on a url and command that guides agents data extraction process.
+
+        Parameters:
+            - cmd: str. A specific natural language instruction on data the agent should extract.
+
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+
+            - page_number: typing.Optional[int]. The page number to retrieve data from. where page is a viewport of the browser.
+
+            - url: typing.Optional[str]. The URL to create or continue session from.
+
+            - fields: typing.Optional[str]. list of comma separated fields you would like extracted from the page
+
+            - format: typing.Optional[typing.Literal["json"]].
+
+            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response.
+
+            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
+        ---
+        from multion.client import AsyncMultiOn
+
+        client = AsyncMultiOn(
+            api_key="YOUR_API_KEY",
+        )
+        await client.sessions.retrieve(
+            cmd="cmd",
+        )
+        """
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if session_id is not OMIT:
+            _request["session_id"] = session_id
+        if page_number is not OMIT:
+            _request["page_number"] = page_number
+        if url is not OMIT:
+            _request["url"] = url
+        if fields is not OMIT:
+            _request["fields"] = fields
+        if format is not OMIT:
+            _request["format"] = format
+        if include_screenshot is not OMIT:
+            _request["include_screenshot"] = include_screenshot
+        _response = await self._client_wrapper.httpx_client.request(
+            method="POST",
+            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
+            params=jsonable_encoder(
+                request_options.get("additional_query_parameters") if request_options is not None else None
+            ),
+            json=jsonable_encoder(_request)
+            if request_options is None or request_options.get("additional_body_parameters") is None
+            else {
+                **jsonable_encoder(_request),
+                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            },
+            headers=jsonable_encoder(
+                remove_none_from_dict(
+                    {
+                        **self._client_wrapper.get_headers(),
+                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
+                    }
+                )
+            ),
+            timeout=request_options.get("timeout_in_seconds")
+            if request_options is not None and request_options.get("timeout_in_seconds") is not None
+            else self._client_wrapper.get_timeout(),
+            retries=0,
+            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+        )
+        if 200 <= _response.status_code < 300:
+            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
