@@ -80,7 +80,7 @@ class WrappedSessionsClient(SessionsClient):
 
         # TODO: Add LLMEvent
         if action_event is None:
-            action_event = ActionEvent(params=params)
+            action_event = ActionEvent(action_type="step_stream",params=params)
             action_event.returns = ""
         try:
             step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
@@ -171,7 +171,7 @@ class WrappedSessionsClient(SessionsClient):
             params["format"] = format
         if request_options is not None:
             params["request_options"] = request_options
-        action_event = ActionEvent(params=params)
+        action_event = ActionEvent(action_type="retrieve", params=params)
         llm_event = LLMEvent()
         try:
             retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
@@ -197,6 +197,7 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionCreated:
+        agentops.start_session(tags=["multion-sdk"])
         try:
             return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
         except Exception as e:
@@ -215,10 +216,20 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[SessionStepStreamChunk]:
-        action_event.returns = ""
+        params = {"session_id": session_id, "cmd": cmd}
+        if url is not OMIT:
+            params["url"] = url
+        if browser_params is not OMIT:
+            params["browser_params"] = browser_params.json()
+        if optional_params is not OMIT:
+            params["optional_params"] = optional_params.json()
+        if request_options is not None:
+            params["request_options"] = request_options
+
+        # TODO: Add LLMEvent
         if action_event is None:
-            action_event = ActionEvent(params=locals())
-            # TODO: Add LLMEvent
+            action_event = ActionEvent(action_type="step_stream",params=params)
+            action_event.returns = ""
         try:
             step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
             
@@ -295,7 +306,7 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
             params["format"] = format
         if request_options is not None:
             params["request_options"] = request_options
-        action_event = ActionEvent(params=params)
+        action_event = ActionEvent(action_type="retrieve", params=params)
         llm_event = LLMEvent()
         try:
             retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
@@ -315,10 +326,12 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> SessionsCloseResponse:
         try:
-            close_response = super().close(...)
+            close_response = super().close(session_id=session_id, request_options=request_options)
             agentops.end_session("Success", end_state_reason=close_response.status)
             return close_response
         except Exception as e:
+            error_event = ErrorEvent(exception=e)
+            agentops.record(error_event)
             agentops.end_session("Fail", end_state_reason=e)
             raise e
         
