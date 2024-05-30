@@ -93,7 +93,17 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
-        action_event = ActionEvent(params=locals())
+        params = {"session_id": session_id, "cmd": cmd}
+        if url is not OMIT:
+            params["url"] = url
+        if browser_params is not OMIT:
+            params["browser_params"] = browser_params.json()
+        if optional_params is not OMIT:
+            params["optional_params"] = optional_params.json()
+        if request_options is not None:
+            params["request_options"] = request_options
+
+        action_event = ActionEvent(params=params)
         try:
             step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
             action_event.returns = step_response.dict()
