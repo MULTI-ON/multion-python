@@ -6,6 +6,7 @@ from .types import (
     HttpValidationError,
     InternalServerErrorResponse,
     Metadata,
+    OptionalParams,
     PaymentRequiredResponse,
     RemoteValue,
     RetrieveOutput,
@@ -14,6 +15,7 @@ from .types import (
     SessionStepStreamChunk_Event,
     SessionStepStreamChunk_FinalEvent,
     SessionStepSuccess,
+    SessionStepSuccessMetadata,
     SessionStreamChunkEvent,
     SessionStreamChunkEventData,
     SessionStreamChunkEventDataDelta,
@@ -24,7 +26,13 @@ from .types import (
     ValidationError,
     ValidationErrorLocItem,
 )
-from .errors import BadRequestError, InternalServerError, UnauthorizedError, UnprocessableEntityError
+from .errors import (
+    BadRequestError,
+    InternalServerError,
+    PaymentRequiredError,
+    UnauthorizedError,
+    UnprocessableEntityError,
+)
 from . import sessions
 from .environment import MultiOnEnvironment
 from .sessions import (
@@ -47,6 +55,8 @@ __all__ = [
     "InternalServerErrorResponse",
     "Metadata",
     "MultiOnEnvironment",
+    "OptionalParams",
+    "PaymentRequiredError",
     "PaymentRequiredResponse",
     "RemoteValue",
     "RetrieveOutput",
@@ -55,6 +65,7 @@ __all__ = [
     "SessionStepStreamChunk_Event",
     "SessionStepStreamChunk_FinalEvent",
     "SessionStepSuccess",
+    "SessionStepSuccessMetadata",
     "SessionStreamChunkEvent",
     "SessionStreamChunkEventData",
     "SessionStreamChunkEventDataDelta",

@@ -6,38 +6,16 @@ import typing
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
 from ..core.unchecked_base_model import UncheckedBaseModel
-from .session_step_success_metadata import SessionStepSuccessMetadata
 
 
-class SessionStepSuccess(UncheckedBaseModel):
-    status: str = pydantic_v1.Field()
-    """
-    The current status of the session.
-    """
-
-    message: str = pydantic_v1.Field()
-    """
-    A message providing more details about the session status.
-    """
-
-    session_id: str = pydantic_v1.Field()
-    """
-    The unique identifier for the session.
-    """
-
-    url: str = pydantic_v1.Field()
-    """
-    The URL associated with the session.
-    """
-
-    screenshot: str = pydantic_v1.Field()
-    """
-    image url of the screenshot taken during the session.
-    """
-
-    metadata: typing.Optional[SessionStepSuccessMetadata] = pydantic_v1.Field(default=None)
+class SessionStepSuccessMetadata(UncheckedBaseModel):
     """
     Additional metadata for the step session.
+    """
+
+    temperature: typing.Optional[float] = pydantic_v1.Field(default=None)
+    """
+    The temperature of model
     """
 
     def json(self, **kwargs: typing.Any) -> str:
