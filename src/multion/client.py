@@ -81,11 +81,31 @@ class MultiOn(BaseMultiOn):
         optional_params: typing.Optional[OptionalParams] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ):
-        action_event = ActionEvent(params=locals())
-        browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
-        action_event.returns = browse_response.dict()
-        action_event.screenshot = browse_response.screenshot
-        agentops.record(action_event)
+        agentops.start_session(tags=["multion-sdk"])
+        params = {"cmd": cmd}
+        if url is not OMIT:
+            params["url"] = url
+        if local is not OMIT:
+            params["local"] = local
+        if session_id is not OMIT:
+            params["session_id"] = session_id
+        if max_steps is not OMIT:
+            params["max_steps"] = max_steps
+        if optional_params is not OMIT:
+            params["optional_params"] = optional_params.json()
+        if request_options is not None:
+            params["request_options"] = request_options
+        action_event = ActionEvent(params=params)
+        try:
+            browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
+            action_event.returns = browse_response.dict()
+            action_event.screenshot = browse_response.screenshot
+            agentops.record(action_event)
+            return browse_response
+        except Exception as e:
+            error_event = ErrorEvent(trigger_event=action_event, exception=e)
+            agentops.record(error_event)
+            raise e
 
 class AsyncMultiOn(AsyncBaseMultiOn):
     """
@@ -134,4 +154,42 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         )
         self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
-            agentops.init(api_key=agentops_api_key, parent_key="HARDCODE ME", auto_start_session=False)
+            agentops.init(api_key=agentops_api_key, auto_start_session=False)  #TODO: Add parent key
+
+    async def browse(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        local: typing.Optional[bool] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        max_steps: typing.Optional[int] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ):
+        agentops.start_session(tags=["multion-sdk"])
+        params = {"cmd": cmd}
+        if url is not OMIT:
+            params["url"] = url
+        if local is not OMIT:
+            params["local"] = local
+        if session_id is not OMIT:
+            params["session_id"] = session_id
+        if max_steps is not OMIT:
+            params["max_steps"] = max_steps
+        if optional_params is not OMIT:
+            params["optional_params"] = optional_params.json()
+        if request_options is not None:
+            params["request_options"] = request_options
+        action_event = ActionEvent(params=params)
+        try:
+            browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
+            action_event.returns = browse_response.dict()
+            action_event.screenshot = browse_response.screenshot
+            agentops.record(action_event)
+            return browse_response
+        except Exception as e:
+            error_event = ErrorEvent(trigger_event=action_event, exception=e)
+            agentops.record(error_event)
+            raise e

@@ -49,8 +49,13 @@ class WrappedSessionsClient(SessionsClient):
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionCreated:
         agentops.start_session(tags=["multion-sdk"])
-        return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
-    
+        try:
+            return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
+        except Exception as e:
+            error_event = ErrorEvent(exception=e)
+            agentops.record(error_event)
+            raise e
+
     def step_stream(
         self,
         session_id: str,
@@ -62,7 +67,6 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[SessionStepStreamChunk]:
-        
         action_event.returns = ""
         if action_event is None:
             action_event = ActionEvent(params=locals())
@@ -75,12 +79,11 @@ class WrappedSessionsClient(SessionsClient):
                 action_event.returns += step_stream_response.data.delta.content
                 action_event.screenshot = step_stream_response.screenshot
                 agentops.record(action_event)
+            return step_stream_response
         except Exception as e:
             error_event = ErrorEvent(trigger_event=action_event, exception=e)
             agentops.record(error_event)
             raise e
-
-        return step_stream_response
 
     def step(
         self,
@@ -164,9 +167,12 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionCreated:
-        agentops.start_session(tags=["multion-sdk"])
-        return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
-    
+        try:
+            return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
+        except Exception as e:
+            error_event = ErrorEvent(exception=e)
+            agentops.record(error_event)
+            raise e
     
     async def step_stream(
         self,
@@ -179,7 +185,23 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[SessionStepStreamChunk]:
-        pass
+        action_event.returns = ""
+        if action_event is None:
+            action_event = ActionEvent(params=locals())
+        try:
+            step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
+            
+            if isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_Event):
+                action_event.returns += step_stream_response.data.delta.content
+            elif isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent):
+                action_event.returns += step_stream_response.data.delta.content
+                action_event.screenshot = step_stream_response.screenshot
+                agentops.record(action_event)
+            return step_stream_response
+        except Exception as e:
+            error_event = ErrorEvent(trigger_event=action_event, exception=e)
+            agentops.record(error_event)
+            raise e
     
     async def step(
         self,
@@ -198,13 +220,12 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
             action_event.returns = step_response.dict()
             action_event.screenshot = step_response.screenshot
             agentops.record(action_event)
+            return step_response
         except Exception as e:
             error_event = ErrorEvent(trigger_event=action_event, exception=e)
             agentops.record(error_event)
             raise e
 
-        return step_response
-    
     async def retrieve(
         self,
         *,
