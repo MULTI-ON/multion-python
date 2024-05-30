@@ -2,8 +2,7 @@ from nis import cat
 
 from multion.sessions.client import AsyncSessionsClient, SessionsClient
 import agentops
-from agentops import ActionEvent
-from agentops.enums import EndState
+from agentops import ActionEvent, ErrorEvent
 
 import json
 import typing
@@ -76,25 +75,30 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
-        step_response = super().step(...)
-
-        # Begin agentops recording
         action_event = ActionEvent(params=locals())
-        action_event.returns = step_response.dict()
-        action_event.screenshot = step_response.screenshot
-        agentops.record(action_event)
-        
+        try:
+            step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
+            action_event.returns = step_response.dict()
+            action_event.screenshot = step_response.screenshot
+            agentops.record(action_event)
+        except Exception as e:
+            error_event = ErrorEvent(trigger_event=action_event, exception=e)
+            agentops.record(error_event)
+            raise e
+
         return step_response
     
     def close(
         self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> SessionsCloseResponse:
         try:
-            close_response = super().close(...)
-            agentops.end_session(EndState.SUCCESS, end_state_reason=close_response.status_code)
+            close_response = super().close(session_id=session_id, request_options=request_options)
+            agentops.end_session("Success", end_state_reason=close_response.status)
             return close_response
         except Exception as e:
-            agentops.end_session(EndState.FAIL, end_state_reason=e)
+            error_event = ErrorEvent(exception=e)
+            agentops.record(error_event)
+            agentops.end_session("Fail", end_state_reason=e)
             raise e
         
     def retrieve(
@@ -164,8 +168,8 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
     ) -> SessionsCloseResponse:
         try:
             close_response = super().close(...)
-            agentops.end_session(EndState.SUCCESS, end_state_reason=close_response.status_code)
+            agentops.end_session("Success", end_state_reason=close_response.status)
             return close_response
         except Exception as e:
-            agentops.end_session(EndState.FAIL, end_state_reason=e)
+            agentops.end_session("Fail", end_state_reason=e)
             raise e
