@@ -16,6 +16,7 @@ from .core.unchecked_base_model import construct_type
 from .environment import MultiOnEnvironment
 from .errors.bad_request_error import BadRequestError
 from .errors.internal_server_error import InternalServerError
+from .errors.payment_required_error import PaymentRequiredError
 from .errors.unauthorized_error import UnauthorizedError
 from .errors.unprocessable_entity_error import UnprocessableEntityError
 from .sessions.client import AsyncSessionsClient, SessionsClient
@@ -23,13 +24,15 @@ from .types.bad_request_response import BadRequestResponse
 from .types.browse_output import BrowseOutput
 from .types.http_validation_error import HttpValidationError
 from .types.internal_server_error_response import InternalServerErrorResponse
+from .types.optional_params import OptionalParams
+from .types.payment_required_response import PaymentRequiredResponse
 from .types.unauthorized_response import UnauthorizedResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
 
 
-class MultiOn:
+class BaseMultiOn:
     """
     Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propogate to these functions.
 
@@ -91,6 +94,7 @@ class MultiOn:
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
         """
@@ -108,6 +112,8 @@ class MultiOn:
             - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
 
             - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page.
+
+            - optional_params: typing.Optional[OptionalParams].
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
@@ -132,6 +138,8 @@ class MultiOn:
             _request["max_steps"] = max_steps
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
+        if optional_params is not OMIT:
+            _request["optional_params"] = optional_params
         _response = self._client_wrapper.httpx_client.request(
             method="POST",
             url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "browse"),
@@ -168,6 +176,10 @@ class MultiOn:
             raise UnauthorizedError(
                 typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
             )
+        if _response.status_code == 402:
+            raise PaymentRequiredError(
+                typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
+            )
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
@@ -183,7 +195,7 @@ class MultiOn:
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
 
-class AsyncMultiOn:
+class AsyncBaseMultiOn:
     """
     Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propogate to these functions.
 
@@ -245,6 +257,7 @@ class AsyncMultiOn:
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
         """
@@ -262,6 +275,8 @@ class AsyncMultiOn:
             - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
 
             - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page.
+
+            - optional_params: typing.Optional[OptionalParams].
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
@@ -286,6 +301,8 @@ class AsyncMultiOn:
             _request["max_steps"] = max_steps
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
+        if optional_params is not OMIT:
+            _request["optional_params"] = optional_params
         _response = await self._client_wrapper.httpx_client.request(
             method="POST",
             url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "browse"),
@@ -321,6 +338,10 @@ class AsyncMultiOn:
         if _response.status_code == 401:
             raise UnauthorizedError(
                 typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
+            )
+        if _response.status_code == 402:
+            raise PaymentRequiredError(
+                typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
             )
         if _response.status_code == 422:
             raise UnprocessableEntityError(

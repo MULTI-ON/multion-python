@@ -11,7 +11,7 @@ from ..core.unchecked_base_model import UncheckedBaseModel
 class RetrieveOutput(UncheckedBaseModel):
     message: str = pydantic_v1.Field()
     """
-    information on a webpage based on a user query
+    information relating to response
     """
 
     url: str = pydantic_v1.Field()
@@ -24,9 +24,24 @@ class RetrieveOutput(UncheckedBaseModel):
     image url of the screenshot taken during the session.
     """
 
-    link_dict: typing.Dict[str, str] = pydantic_v1.Field()
+    session_id: typing.Optional[str] = pydantic_v1.Field(default=None)
     """
-    Dictionary of link available on the web page
+    The unique identifier for the session.
+    """
+
+    status: str = pydantic_v1.Field()
+    """
+    The current status of the session. CONTINUE if more pages are available. DONE if scrolled to the end of the page.
+    """
+
+    next_page: typing.Optional[int] = pydantic_v1.Field(default=None)
+    """
+    next page number. where each viewport is another page
+    """
+
+    data: typing.List[typing.Dict[str, typing.Any]] = pydantic_v1.Field()
+    """
+    Array of data objects, each containing data requested in fields.
     """
 
     def json(self, **kwargs: typing.Any) -> str:

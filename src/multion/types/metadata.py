@@ -23,6 +23,11 @@ class Metadata(UncheckedBaseModel):
     Time taken to process the request in seconds.
     """
 
+    temperature: typing.Optional[float] = pydantic_v1.Field(default=None)
+    """
+    The temperature of model
+    """
+
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
         return super().json(**kwargs_with_defaults)
