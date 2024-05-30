@@ -136,6 +136,7 @@ class WrappedSessionsClient(SessionsClient):
         try:
             retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
             action_event.returns = retrieve_response.dict()
+            action_event.screenshot = retrieve_response.screenshot
             agentops.record(action_event)
             return retrieve_response
         except Exception as e:
@@ -155,7 +156,8 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionCreated:
         agentops.start_session(tags=["multion-sdk"])
-        return super().create()
+        return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
+    
     
     async def step_stream(
         self,
@@ -181,15 +183,43 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
-        step_response = await super().step(...)
-
-        # Begin agentops recording
         action_event = ActionEvent(params=locals())
-        action_event.returns = step_response.dict()
-        action_event.screenshot = step_response.screenshot
-        agentops.record(action_event)
-        
+        try:
+            step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
+            action_event.returns = step_response.dict()
+            action_event.screenshot = step_response.screenshot
+            agentops.record(action_event)
+        except Exception as e:
+            error_event = ErrorEvent(trigger_event=action_event, exception=e)
+            agentops.record(error_event)
+            raise e
+
         return step_response
+    
+    async def retrieve(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        page_number: typing.Optional[int] = OMIT,
+        fields: typing.Optional[str] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        action_event = ActionEvent(params=locals())
+        try:
+            retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
+            action_event.returns = retrieve_response.dict()
+            action_event.screenshot = retrieve_response.screenshot
+            agentops.record(action_event)
+            return retrieve_response
+        except Exception as e:
+            error_event = ErrorEvent(exception=e)
+            agentops.record(error_event)
+            raise e
+
 
     async def close(
         self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
@@ -201,3 +231,5 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         except Exception as e:
             agentops.end_session("Fail", end_state_reason=e)
             raise e
+        
+        
