@@ -12,7 +12,7 @@ from .core.request_options import RequestOptions
 from .types.optional_params import OptionalParams
 
 import agentops
-from agentops import ActionEvent, ErrorEvent
+from agentops import ActionEvent, LLMEvent, ErrorEvent
 import os
 
 
@@ -96,11 +96,14 @@ class MultiOn(BaseMultiOn):
         if request_options is not None:
             params["request_options"] = request_options
         action_event = ActionEvent(params=params)
+        llm_event = LLMEvent()
         try:
             browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
             action_event.returns = browse_response.dict()
             action_event.screenshot = browse_response.screenshot
+            llm_event.prompt = browse_response.message
             agentops.record(action_event)
+            agentops.record(llm_event)
             return browse_response
         except Exception as e:
             error_event = ErrorEvent(trigger_event=action_event, exception=e)

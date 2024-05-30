@@ -2,7 +2,7 @@ from nis import cat
 
 from multion.sessions.client import AsyncSessionsClient, SessionsClient
 import agentops
-from agentops import ActionEvent, ErrorEvent
+from agentops import ActionEvent, LLMEvent, ErrorEvent
 
 import json
 import typing
@@ -106,18 +106,20 @@ class WrappedSessionsClient(SessionsClient):
         if request_options is not None:
             params["request_options"] = request_options
 
-        action_event = ActionEvent(params=params)
+        action_event = ActionEvent(action_type="step",params=params)
+        llm_event = LLMEvent()
         try:
             step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
             action_event.returns = step_response.dict()
             action_event.screenshot = step_response.screenshot
+            llm_event.prompt = step_response.message
             agentops.record(action_event)
+            agentops.record(llm_event)
+            return step_response
         except Exception as e:
             error_event = ErrorEvent(trigger_event=action_event, exception=e)
             agentops.record(error_event)
             raise e
-
-        return step_response
     
     def close(
         self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
@@ -145,11 +147,14 @@ class WrappedSessionsClient(SessionsClient):
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveOutput:
         action_event = ActionEvent(params=locals())
+        llm_event = LLMEvent()
         try:
             retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
             action_event.returns = retrieve_response.dict()
             action_event.screenshot = retrieve_response.screenshot
+            llm_event.prompt = retrieve_response.message
             agentops.record(action_event)
+            agentops.record(llm_event)
             return retrieve_response
         except Exception as e:
             error_event = ErrorEvent(exception=e)
@@ -188,6 +193,7 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         action_event.returns = ""
         if action_event is None:
             action_event = ActionEvent(params=locals())
+            # TODO: Add LLMEvent
         try:
             step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
             
@@ -214,12 +220,25 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
-        action_event = ActionEvent(params=locals())
+        params = {"session_id": session_id, "cmd": cmd}
+        if url is not OMIT:
+            params["url"] = url
+        if browser_params is not OMIT:
+            params["browser_params"] = browser_params.json()
+        if optional_params is not OMIT:
+            params["optional_params"] = optional_params.json()
+        if request_options is not None:
+            params["request_options"] = request_options
+
+        action_event = ActionEvent(action_type="step",params=params)
+        llm_event = LLMEvent()
         try:
             step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
             action_event.returns = step_response.dict()
             action_event.screenshot = step_response.screenshot
+            llm_event.prompt = step_response.message
             agentops.record(action_event)
+            agentops.record(llm_event)
             return step_response
         except Exception as e:
             error_event = ErrorEvent(trigger_event=action_event, exception=e)
@@ -239,11 +258,14 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveOutput:
         action_event = ActionEvent(params=locals())
+        llm_event = LLMEvent()
         try:
             retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
             action_event.returns = retrieve_response.dict()
             action_event.screenshot = retrieve_response.screenshot
+            llm_event.prompt = retrieve_response.message
             agentops.record(action_event)
+            agentops.record(llm_event)
             return retrieve_response
         except Exception as e:
             error_event = ErrorEvent(exception=e)
