@@ -8,8 +8,11 @@ import httpx
 from multion.base_client import AsyncBaseMultiOn, BaseMultiOn
 from multion.environment import MultiOnEnvironment
 from multion.sessions.wrapped_client import WrappedAsyncSessionsClient, WrappedSessionsClient
+from .core.request_options import RequestOptions
+from .types.optional_params import OptionalParams
 
 import agentops
+from agentops import ActionEvent, ErrorEvent
 import os
 
 
@@ -65,6 +68,24 @@ class MultiOn(BaseMultiOn):
         self.sessions = WrappedSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
             agentops.init(api_key=agentops_api_key, auto_start_session=False) #TODO: Add parent key
+
+    def browse(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        local: typing.Optional[bool] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        max_steps: typing.Optional[int] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        optional_params: typing.Optional[OptionalParams] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ):
+        action_event = ActionEvent(params=locals())
+        browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
+        action_event.returns = browse_response.dict()
+        action_event.screenshot = browse_response.screenshot
+        agentops.record(action_event)
 
 class AsyncMultiOn(AsyncBaseMultiOn):
     """
