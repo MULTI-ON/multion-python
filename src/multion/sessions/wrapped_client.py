@@ -62,7 +62,26 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[SessionStepStreamChunk]:
-            pass
+        
+        temp = ""
+        if action_event is None:
+            action_event = ActionEvent(params=locals())
+        try:
+            step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
+            
+            if isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_Event):
+                temp += step_stream_response.data
+            elif isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent):
+                temp += step_stream_response.data
+                action_event.returns = temp
+                action_event.screenshot = step_stream_response.screenshot
+                agentops.record(action_event)
+        except Exception as e:
+            error_event = ErrorEvent(trigger_event=action_event, exception=e)
+            agentops.record(error_event)
+            raise e
+
+        return step_stream_response
 
     def step(
         self,
@@ -113,7 +132,16 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveOutput:
-                pass
+        action_event = ActionEvent(params=locals())
+        try:
+            retrieve_response = super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
+            action_event.returns = retrieve_response.dict()
+            agentops.record(action_event)
+            return retrieve_response
+        except Exception as e:
+            error_event = ErrorEvent(exception=e)
+            agentops.record(error_event)
+            raise e
 
 
 class WrappedAsyncSessionsClient(AsyncSessionsClient):
