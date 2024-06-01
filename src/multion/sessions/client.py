@@ -214,6 +214,7 @@ class SessionsClient:
                 raise ApiError(status_code=_response.status_code, body=_response.text)
             raise ApiError(status_code=_response.status_code, body=_response_json)
 
+    @record_function(event_name="step")
     def step(
         self,
         session_id: str,

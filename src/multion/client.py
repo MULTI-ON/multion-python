@@ -12,7 +12,6 @@ from .core.request_options import RequestOptions
 from .types.optional_params import OptionalParams
 
 import agentops
-from agentops import ActionEvent, LLMEvent, ErrorEvent
 import os
 
 
@@ -68,7 +67,9 @@ class MultiOn(BaseMultiOn):
         self.sessions = WrappedSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
             agentops.init(api_key=agentops_api_key, auto_start_session=False) #TODO: Add parent key
+        # TODO: test browse/step/retrieve/step_stream to make sure they don't log anything to console if no agentops_api_key
 
+    @agentops.record_function(event_name="browse")
     def browse(
         self,
         *,
@@ -82,33 +83,8 @@ class MultiOn(BaseMultiOn):
         request_options: typing.Optional[RequestOptions] = None,
     ):
         agentops.start_session(tags=["multion-sdk"])
-        params = {"cmd": cmd}
-        if url is not OMIT:
-            params["url"] = url
-        if local is not OMIT:
-            params["local"] = local
-        if session_id is not OMIT:
-            params["session_id"] = session_id
-        if max_steps is not OMIT:
-            params["max_steps"] = max_steps
-        if optional_params is not OMIT:
-            params["optional_params"] = optional_params.json()
-        if request_options is not None:
-            params["request_options"] = request_options
-        action_event = ActionEvent(params=params)
-        llm_event = LLMEvent()
-        try:
-            browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
-            action_event.returns = browse_response.dict()
-            action_event.screenshot = browse_response.screenshot
-            llm_event.prompt = browse_response.message
-            agentops.record(action_event)
-            agentops.record(llm_event)
-            return browse_response
-        except Exception as e:
-            error_event = ErrorEvent(trigger_event=action_event, exception=e)
-            agentops.record(error_event)
-            raise e
+        browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
+        return browse_response
 
 class AsyncMultiOn(AsyncBaseMultiOn):
     """
@@ -158,7 +134,9 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
             agentops.init(api_key=agentops_api_key, auto_start_session=False)  #TODO: Add parent key
+        # TODO: test browse/step/retrieve/step_stream to make sure they don't log anything to console if no agent
 
+    @agentops.record_function(event_name="browse")
     async def browse(
         self,
         *,
@@ -172,27 +150,5 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         request_options: typing.Optional[RequestOptions] = None,
     ):
         agentops.start_session(tags=["multion-sdk"])
-        params = {"cmd": cmd}
-        if url is not OMIT:
-            params["url"] = url
-        if local is not OMIT:
-            params["local"] = local
-        if session_id is not OMIT:
-            params["session_id"] = session_id
-        if max_steps is not OMIT:
-            params["max_steps"] = max_steps
-        if optional_params is not OMIT:
-            params["optional_params"] = optional_params.json()
-        if request_options is not None:
-            params["request_options"] = request_options
-        action_event = ActionEvent(params=params)
-        try:
-            browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
-            action_event.returns = browse_response.dict()
-            action_event.screenshot = browse_response.screenshot
-            agentops.record(action_event)
-            return browse_response
-        except Exception as e:
-            error_event = ErrorEvent(trigger_event=action_event, exception=e)
-            agentops.record(error_event)
-            raise e
+        browse_response = super().browse(cmd=cmd, url=url, local=local, session_id=session_id, max_steps=max_steps, include_screenshot=include_screenshot, optional_params=optional_params, request_options=request_options)
+        return browse_response
