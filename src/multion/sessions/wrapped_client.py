@@ -75,8 +75,6 @@ class WrappedSessionsClient(SessionsClient):
     def retrieve(self, *args, **kwargs) -> RetrieveOutput:
         return super().retrieve(*args, **kwargs)
 
-
-# TODO: Test async
 class WrappedAsyncSessionsClient(AsyncSessionsClient):
     @wraps_function(AsyncSessionsClient.__init__)
     async def __init__(self, *args, **kwargs):
