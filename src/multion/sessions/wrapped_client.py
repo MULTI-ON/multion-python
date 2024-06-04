@@ -1,7 +1,6 @@
 from multion.sessions.client import AsyncSessionsClient, SessionsClient
 import agentops
 from agentops import ActionEvent, LLMEvent, ErrorEvent
-import copy
 
 import typing
 from ..types.retrieve_output import RetrieveOutput
