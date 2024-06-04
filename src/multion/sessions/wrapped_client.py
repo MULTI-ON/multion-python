@@ -1,6 +1,7 @@
 from multion.sessions.client import AsyncSessionsClient, SessionsClient
 import agentops
 from agentops import ActionEvent, LLMEvent, ErrorEvent
+import copy
 
 import typing
 from ..types.retrieve_output import RetrieveOutput
@@ -26,33 +27,30 @@ class WrappedSessionsClient(SessionsClient):
             agentops.record(error_event)
             raise e
 
-    # TODO: test step_stream
-    @agentops.record_function(event_name="step_stream")
     def step_stream(self, *args, **kwargs) -> typing.Iterator[SessionStepStreamChunk]:
-        # TODO: Add LLMEvent
-        if action_event is None:
-            action_event = ActionEvent(action_type="step_stream", params=kwargs)
-            action_event.returns = ""
-        try:
-            step_stream_response = super().step_stream(*args, **kwargs)
+        action_event = ActionEvent(action_type="step_stream", params=kwargs)
+        action_event.returns = ""
+        llm_event = LLMEvent()
+        step_stream_response = super().step_stream(*args, **kwargs)
 
-            if isinstance(
-                step_stream_response,
-                SessionStepStreamChunk.SessionStepStreamChunk_Event,
-            ):
-                action_event.returns += step_stream_response.data.delta.content
-            elif isinstance(
-                step_stream_response,
-                SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent,
-            ):
-                action_event.returns += step_stream_response.data.delta.content
-                action_event.screenshot = step_stream_response.screenshot
-                agentops.record(action_event)
-            return step_stream_response
-        except Exception as e:
-            error_event = ErrorEvent(trigger_event=action_event, exception=e)
-            agentops.record(error_event)
-            raise e
+        def generator():
+            for chunk in step_stream_response:
+                if chunk.type == "final_event":
+                    action_event.screenshot = chunk.screenshot
+                    try:
+                        agentops.record(action_event)
+                        llm_event.prompt = action_event.returns
+                        agentops.record(llm_event)
+                    except Exception as e:
+                        error_event = ErrorEvent(
+                            trigger_event=action_event, exception=e
+                        )
+                        agentops.record(error_event)
+                else:
+                    action_event.returns += chunk.delta["content"]
+                yield chunk
+
+        return generator()
 
     @agentops.record_function(event_name="step")
     def step(self, *args, **kwargs) -> SessionStepSuccess:
@@ -86,35 +84,33 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
             agentops.record(error_event)
             raise e
 
-    # TODO: test step_stream
     @agentops.record_function(event_name="step_stream")
     async def step_stream(
         self, *args, **kwargs
     ) -> typing.Iterator[SessionStepStreamChunk]:
-        # TODO: Add LLMEvent
-        if action_event is None:
-            action_event = ActionEvent(action_type="step_stream", params=kwargs)
-            action_event.returns = ""
-        try:
-            step_stream_response = super().step_stream(*args, **kwargs)
+        action_event = ActionEvent(action_type="step_stream", params=kwargs)
+        action_event.returns = ""
+        llm_event = LLMEvent()
+        step_stream_response = super().step_stream(*args, **kwargs)
 
-            if isinstance(
-                step_stream_response,
-                SessionStepStreamChunk.SessionStepStreamChunk_Event,
-            ):
-                action_event.returns += step_stream_response.data.delta.content
-            elif isinstance(
-                step_stream_response,
-                SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent,
-            ):
-                action_event.returns += step_stream_response.data.delta.content
-                action_event.screenshot = step_stream_response.screenshot
-                agentops.record(action_event)
-            return step_stream_response
-        except Exception as e:
-            error_event = ErrorEvent(trigger_event=action_event, exception=e)
-            agentops.record(error_event)
-            raise e
+        def generator():
+            for chunk in step_stream_response:
+                if chunk.type == "final_event":
+                    action_event.screenshot = chunk.screenshot
+                    try:
+                        agentops.record(action_event)
+                        llm_event.prompt = action_event.returns
+                        agentops.record(llm_event)
+                    except Exception as e:
+                        error_event = ErrorEvent(
+                            trigger_event=action_event, exception=e
+                        )
+                        agentops.record(error_event)
+                else:
+                    action_event.returns += chunk.delta["content"]
+                yield chunk
+
+        return generator()
 
     @agentops.record_function(event_name="step")
     async def step(self, *args, **kwargs) -> SessionStepSuccess:

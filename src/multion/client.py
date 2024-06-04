@@ -6,6 +6,7 @@ from multion.sessions.wrapped_client import (
     WrappedSessionsClient,
 )
 import agentops
+import os
 
 
 # this is used as the default value for optional parameters
@@ -47,16 +48,15 @@ class MultiOn(BaseMultiOn):
         self.sessions = WrappedSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
             agentops.init(
-                api_key=agentops_api_key, auto_start_session=False
-            )  # TODO: Add parent key
-        # TODO: test browse/step/retrieve/step_stream to make sure they don't log anything to console if no agentops_api_key
+                api_key=agentops_api_key,
+                parent_key=os.getenv("AGENTOPS_PARENT_KEY"),
+                auto_start_session=False,
+            )
 
     @agentops.record_function(event_name="browse")
     def browse(self, *args, **kwargs):
         agentops.start_session(tags=["multion-sdk"])
-        browse_response = super().browse(*args, **kwargs)
-        agentops.end_session("Success")
-        return browse_response
+        return super().browse(*args, **kwargs)
 
 
 class AsyncMultiOn(AsyncBaseMultiOn):
@@ -94,13 +94,12 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
             agentops.init(
-                api_key=agentops_api_key, auto_start_session=False
-            )  # TODO: Add parent key
-        # TODO: test browse/step/retrieve/step_stream to make sure they don't log anything to console if no agentops_api_key
+                api_key=agentops_api_key,
+                parent_key=os.getenv("AGENTOPS_PARENT_KEY"),
+                auto_start_session=False,
+            )
 
     @agentops.record_function(event_name="browse")
     async def browse(self, *args, **kwargs):
         agentops.start_session(tags=["multion-sdk"])
-        browse_response = super().browse(*args, **kwargs)
-        agentops.end_session("Success")
-        return browse_response
+        return super().browse(*args, **kwargs)
