@@ -8,6 +8,8 @@ from multion.sessions.wrapped_client import (
 import agentops
 import os
 
+from .wrappers import wraps_function
+
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -26,8 +28,6 @@ class MultiOn(BaseMultiOn):
 
         - api_key: typing.Optional[str].
 
-        - agentops_api_key: typing.Optional[str].
-
         - timeout: typing.Optional[float]. The timeout to be used, in seconds, for requests by default the timeout is 60 seconds, unless a custom httpx client is used, in which case a default is not set.
 
         - follow_redirects: typing.Optional[bool]. Whether the default httpx client follows redirects or not, this is irrelevant if a custom httpx client is passed in.
@@ -38,12 +38,11 @@ class MultiOn(BaseMultiOn):
 
     client = MultiOn(
         api_key="YOUR_API_KEY",
-        agentops_api_key="YOUR_AGENTOPS_API_KEY",
     )
     """
 
-    def __init__(self, *args, **kwargs):
-        agentops_api_key = kwargs.pop("agentops_api_key", None)
+    @wraps_function(BaseMultiOn.__init__)
+    def __init__(self, *args, agentops_api_key: typing.Optional[str] = os.getenv("AGENTOPS_API_KEY"), **kwargs):
         super().__init__(*args, **kwargs)
         self.sessions = WrappedSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
@@ -54,6 +53,7 @@ class MultiOn(BaseMultiOn):
             )
 
     @agentops.record_function(event_name="browse")
+    @wraps_function(BaseMultiOn.browse)
     def browse(self, *args, **kwargs):
         agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
@@ -88,6 +88,7 @@ class AsyncMultiOn(AsyncBaseMultiOn):
     )
     """
 
+    @wraps_function(AsyncBaseMultiOn.__init__)
     def __init__(self, *args, **kwargs):
         agentops_api_key = kwargs.pop("agentops_api_key", None)
         super().__init__(*args, **kwargs)
@@ -100,6 +101,7 @@ class AsyncMultiOn(AsyncBaseMultiOn):
             )
 
     @agentops.record_function(event_name="browse")
+    @wraps_function(AsyncBaseMultiOn.browse)
     async def browse(self, *args, **kwargs):
         agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)

@@ -5,3 +5,4 @@ README.md
 <!-- AgentOps integration -->
 src/multion/client.py
 src/multion/sessions/wrapped_client.py
+src/multion/wrappers.py
