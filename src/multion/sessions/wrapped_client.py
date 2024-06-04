@@ -29,7 +29,13 @@ from .types.sessions_close_response import SessionsCloseResponse
 from .types.sessions_list_response import SessionsListResponse
 from .types.sessions_screenshot_response import SessionsScreenshotResponse
 from .types.sessions_step_request_browser_params import SessionsStepRequestBrowserParams
-from .types.sessions_step_stream_request_browser_params import SessionsStepStreamRequestBrowserParams
+from .types.sessions_step_stream_request_browser_params import (
+    SessionsStepStreamRequestBrowserParams,
+)
+
+import inspect
+import typing
+from functools import wraps
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -50,7 +56,13 @@ class WrappedSessionsClient(SessionsClient):
     ) -> SessionCreated:
         agentops.start_session(tags=["multion-sdk"])
         try:
-            return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
+            return super().create(
+                url=url,
+                local=local,
+                browser_params=browser_params,
+                include_screenshot=include_screenshot,
+                request_options=request_options,
+            )
         except Exception as e:
             error_event = ErrorEvent(exception=e)
             agentops.record(error_event)
@@ -81,14 +93,28 @@ class WrappedSessionsClient(SessionsClient):
 
         # TODO: Add LLMEvent
         if action_event is None:
-            action_event = ActionEvent(action_type="step_stream",params=params)
+            action_event = ActionEvent(action_type="step_stream", params=params)
             action_event.returns = ""
         try:
-            step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
-            
-            if isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_Event):
+            step_stream_response = super().step_stream(
+                session_id=session_id,
+                cmd=cmd,
+                url=url,
+                browser_params=browser_params,
+                optional_params=optional_params,
+                include_screenshot=include_screenshot,
+                request_options=request_options,
+            )
+
+            if isinstance(
+                step_stream_response,
+                SessionStepStreamChunk.SessionStepStreamChunk_Event,
+            ):
                 action_event.returns += step_stream_response.data.delta.content
-            elif isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent):
+            elif isinstance(
+                step_stream_response,
+                SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent,
+            ):
                 action_event.returns += step_stream_response.data.delta.content
                 action_event.screenshot = step_stream_response.screenshot
                 agentops.record(action_event)
@@ -110,19 +136,41 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
+
+        local_vars = locals()
+
+        # Retrieve the parameter names of this method using inspect
+        sig = inspect.signature(self.step)
+        param_names = set(sig.parameters.keys())
+
+        # Filter local variables to include only those that are in the parameter names
+        filtered_vars = {
+            key: local_vars[key] for key in local_vars if key in param_names
+        }
+
+        @wraps(super().step)
+        def wrapped_step(**kwargs):
+            return super(type(self), self).step(**kwargs)
+
+        # Call the wrapped step function with the filtered keyword arguments
+        step_response = wrapped_step(**filtered_vars)
+
         llm_event = LLMEvent()
-        step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
         llm_event.prompt = step_response.message
         agentops.record(llm_event)
-        return step_response
-    
+
     def close(
-        self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
+        self,
+        session_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionsCloseResponse:
-        close_response = super().close(session_id=session_id, request_options=request_options)
+        close_response = super().close(
+            session_id=session_id, request_options=request_options
+        )
         agentops.end_session("Success", end_state_reason=close_response.status)
         return close_response
-    
+
     @agentops.record_function(event_name="retrieve")
     def retrieve(
         self,
@@ -136,7 +184,17 @@ class WrappedSessionsClient(SessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveOutput:
-        return super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
+        return super().retrieve(
+            cmd=cmd,
+            url=url,
+            session_id=session_id,
+            page_number=page_number,
+            fields=fields,
+            format=format,
+            include_screenshot=include_screenshot,
+            request_options=request_options,
+        )
+
 
 # TODO: Test async
 class WrappedAsyncSessionsClient(AsyncSessionsClient):
@@ -151,12 +209,18 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
     ) -> SessionCreated:
         agentops.start_session(tags=["multion-sdk"])
         try:
-            return super().create(url=url, local=local, browser_params=browser_params, include_screenshot=include_screenshot, request_options=request_options)
+            return super().create(
+                url=url,
+                local=local,
+                browser_params=browser_params,
+                include_screenshot=include_screenshot,
+                request_options=request_options,
+            )
         except Exception as e:
             error_event = ErrorEvent(exception=e)
             agentops.record(error_event)
             raise e
-    
+
     async def step_stream(
         self,
         session_id: str,
@@ -180,14 +244,28 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
 
         # TODO: Add LLMEvent
         if action_event is None:
-            action_event = ActionEvent(action_type="step_stream",params=params)
+            action_event = ActionEvent(action_type="step_stream", params=params)
             action_event.returns = ""
         try:
-            step_stream_response = super().step_stream(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
-            
-            if isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_Event):
+            step_stream_response = super().step_stream(
+                session_id=session_id,
+                cmd=cmd,
+                url=url,
+                browser_params=browser_params,
+                optional_params=optional_params,
+                include_screenshot=include_screenshot,
+                request_options=request_options,
+            )
+
+            if isinstance(
+                step_stream_response,
+                SessionStepStreamChunk.SessionStepStreamChunk_Event,
+            ):
                 action_event.returns += step_stream_response.data.delta.content
-            elif isinstance(step_stream_response, SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent):
+            elif isinstance(
+                step_stream_response,
+                SessionStepStreamChunk.SessionStepStreamChunk_FinalEvent,
+            ):
                 action_event.returns += step_stream_response.data.delta.content
                 action_event.screenshot = step_stream_response.screenshot
                 agentops.record(action_event)
@@ -196,7 +274,7 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
             error_event = ErrorEvent(trigger_event=action_event, exception=e)
             agentops.record(error_event)
             raise e
-    
+
     @agentops.record_function(event_name="step")
     async def step(
         self,
@@ -210,7 +288,15 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
         llm_event = LLMEvent()
-        step_response = super().step(session_id=session_id, cmd=cmd, url=url, browser_params=browser_params, optional_params=optional_params, include_screenshot=include_screenshot, request_options=request_options)
+        step_response = super().step(
+            session_id=session_id,
+            cmd=cmd,
+            url=url,
+            browser_params=browser_params,
+            optional_params=optional_params,
+            include_screenshot=include_screenshot,
+            request_options=request_options,
+        )
         llm_event.prompt = step_response.message
         agentops.record(llm_event)
         return step_response
@@ -228,13 +314,25 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveOutput:
-        return super().retrieve(cmd=cmd, url=url, session_id=session_id, page_number=page_number, fields=fields, format=format, include_screenshot=include_screenshot, request_options=request_options)
-
-
+        return super().retrieve(
+            cmd=cmd,
+            url=url,
+            session_id=session_id,
+            page_number=page_number,
+            fields=fields,
+            format=format,
+            include_screenshot=include_screenshot,
+            request_options=request_options,
+        )
 
     async def close(
-        self, session_id: str, *, request_options: typing.Optional[RequestOptions] = None
+        self,
+        session_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionsCloseResponse:
-        close_response = super().close(session_id=session_id, request_options=request_options)
+        close_response = super().close(
+            session_id=session_id, request_options=request_options
+        )
         agentops.end_session("Success", end_state_reason=close_response.status)
         return close_response
