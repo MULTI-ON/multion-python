@@ -12,11 +12,14 @@ from .types.sessions_close_response import SessionsCloseResponse
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
 
+from ..wrappers import wraps_function
 
 class WrappedSessionsClient(SessionsClient):
+    @wraps_function(SessionsClient.__init__)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @wraps_function(SessionsClient.create)
     def create(self, *args, **kwargs) -> SessionCreated:
         agentops.start_session(tags=["multion-sdk"])
         try:
@@ -26,6 +29,7 @@ class WrappedSessionsClient(SessionsClient):
             agentops.record(error_event)
             raise e
 
+    @wraps_function(SessionsClient.step_stream)
     def step_stream(self, *args, **kwargs) -> typing.Iterator[SessionStepStreamChunk]:
         action_event = ActionEvent(action_type="step_stream", params=kwargs)
         action_event.returns = ""
@@ -50,8 +54,9 @@ class WrappedSessionsClient(SessionsClient):
                 yield chunk
 
         return generator()
-
+    
     @agentops.record_function(event_name="step")
+    @wraps_function(SessionsClient.step)
     def step(self, *args, **kwargs) -> SessionStepSuccess:
         llm_event = LLMEvent()
         step_response = super().step(*args, **kwargs)
@@ -59,21 +64,25 @@ class WrappedSessionsClient(SessionsClient):
         agentops.record(llm_event)
         return step_response
 
+    @wraps_function(SessionsClient.close)
     def close(self, *args, **kwargs) -> SessionsCloseResponse:
         close_response = super().close(*args, **kwargs)
         agentops.end_session("Success")
         return close_response
 
     @agentops.record_function(event_name="retrieve")
+    @wraps_function(SessionsClient.retrieve)
     def retrieve(self, *args, **kwargs) -> RetrieveOutput:
         return super().retrieve(*args, **kwargs)
 
 
 # TODO: Test async
 class WrappedAsyncSessionsClient(AsyncSessionsClient):
+    @wraps_function(AsyncSessionsClient.__init__)
     async def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @wraps_function(AsyncSessionsClient.__init__)
     async def create(self, *args, **kwargs) -> SessionCreated:
         agentops.start_session(tags=["multion-sdk"])
         try:
@@ -84,6 +93,7 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
             raise e
 
     @agentops.record_function(event_name="step_stream")
+    @wraps_function(AsyncSessionsClient.step_stream)
     async def step_stream(
         self, *args, **kwargs
     ) -> typing.Iterator[SessionStepStreamChunk]:
@@ -112,6 +122,7 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         return generator()
 
     @agentops.record_function(event_name="step")
+    @wraps_function(AsyncSessionsClient.step)
     async def step(self, *args, **kwargs) -> SessionStepSuccess:
         llm_event = LLMEvent()
         step_response = super().step(*args, **kwargs)
@@ -119,11 +130,13 @@ class WrappedAsyncSessionsClient(AsyncSessionsClient):
         agentops.record(llm_event)
         return step_response
 
+    @wraps_function(AsyncSessionsClient.close)
     async def close(self, *args, **kwargs) -> SessionsCloseResponse:
         close_response = super().close(*args, **kwargs)
         agentops.end_session("Success")
         return close_response
 
+    @wraps_function(AsyncSessionsClient.retrieve)
     @agentops.record_function(event_name="retrieve")
     async def retrieve(*args, **kwargs) -> RetrieveOutput:
         return super().retrieve(*args, **kwargs)
