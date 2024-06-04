@@ -138,26 +138,19 @@ class WrappedSessionsClient(SessionsClient):
     ) -> SessionStepSuccess:
 
         local_vars = locals()
-
-        # Retrieve the parameter names of this method using inspect
-        sig = inspect.signature(self.step)
-        param_names = set(sig.parameters.keys())
-
-        # Filter local variables to include only those that are in the parameter names
-        filtered_vars = {
-            key: local_vars[key] for key in local_vars if key in param_names
-        }
+        del local_vars["self"]
+        del local_vars["__class__"]
 
         @wraps(super().step)
-        def wrapped_step(**kwargs):
-            return super(type(self), self).step(**kwargs)
+        def wrapped_step(self, *args, **kwargs):
+            return super(type(self), self).step(*args, **kwargs)
 
-        # Call the wrapped step function with the filtered keyword arguments
-        step_response = wrapped_step(**filtered_vars)
+        step_response = wrapped_step(self, **local_vars)
 
         llm_event = LLMEvent()
         llm_event.prompt = step_response.message
         agentops.record(llm_event)
+        return step_response
 
     def close(
         self,
@@ -168,7 +161,7 @@ class WrappedSessionsClient(SessionsClient):
         close_response = super().close(
             session_id=session_id, request_options=request_options
         )
-        agentops.end_session("Success", end_state_reason=close_response.status)
+        agentops.end_session("Success")
         return close_response
 
     @agentops.record_function(event_name="retrieve")
