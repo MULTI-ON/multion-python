@@ -2,7 +2,14 @@
 
 from .bad_request_error import BadRequestError
 from .internal_server_error import InternalServerError
+from .payment_required_error import PaymentRequiredError
 from .unauthorized_error import UnauthorizedError
 from .unprocessable_entity_error import UnprocessableEntityError
 
-__all__ = ["BadRequestError", "InternalServerError", "UnauthorizedError", "UnprocessableEntityError"]
+__all__ = [
+    "BadRequestError",
+    "InternalServerError",
+    "PaymentRequiredError",
+    "UnauthorizedError",
+    "UnprocessableEntityError",
+]

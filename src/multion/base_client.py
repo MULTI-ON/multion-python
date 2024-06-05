@@ -16,6 +16,7 @@ from .core.unchecked_base_model import construct_type
 from .environment import MultiOnEnvironment
 from .errors.bad_request_error import BadRequestError
 from .errors.internal_server_error import InternalServerError
+from .errors.payment_required_error import PaymentRequiredError
 from .errors.unauthorized_error import UnauthorizedError
 from .errors.unprocessable_entity_error import UnprocessableEntityError
 from .sessions.client import AsyncSessionsClient, SessionsClient
@@ -23,13 +24,15 @@ from .types.bad_request_response import BadRequestResponse
 from .types.browse_output import BrowseOutput
 from .types.http_validation_error import HttpValidationError
 from .types.internal_server_error_response import InternalServerErrorResponse
+from .types.mode import Mode
+from .types.payment_required_response import PaymentRequiredResponse
 from .types.unauthorized_response import UnauthorizedResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
 
 
-class MultiOn:
+class BaseMultiOn:
     """
     Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propogate to these functions.
 
@@ -91,23 +94,34 @@ class MultiOn:
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
+        use_proxy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
         """
-        Allows for browsing the web using detailed natural language instructions. The function supports multi-step command execution based on the `CONTINUE` status.
+        Allows for browsing the web using detailed natural language commands.
+
+        The function supports multi-step command execution based on the `CONTINUE` status of the Agent.
 
         Parameters:
             - cmd: str. A specific natural language instruction for the agent to execute
 
             - url: typing.Optional[str]. The URL to start or continue browsing from. (Default: google.com)
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
             - session_id: typing.Optional[str]. Continues the session with session_id if provided.
 
             - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
 
-            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page.
+            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page. (Default: False)
+
+            - temperature: typing.Optional[float]. The temperature of model
+
+            - mode: typing.Optional[Mode].
+
+            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
@@ -132,6 +146,12 @@ class MultiOn:
             _request["max_steps"] = max_steps
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
+        if temperature is not OMIT:
+            _request["temperature"] = temperature
+        if mode is not OMIT:
+            _request["mode"] = mode
+        if use_proxy is not OMIT:
+            _request["use_proxy"] = use_proxy
         _response = self._client_wrapper.httpx_client.request(
             method="POST",
             url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "browse"),
@@ -168,6 +188,10 @@ class MultiOn:
             raise UnauthorizedError(
                 typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
             )
+        if _response.status_code == 402:
+            raise PaymentRequiredError(
+                typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
+            )
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
@@ -183,7 +207,7 @@ class MultiOn:
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
 
-class AsyncMultiOn:
+class AsyncBaseMultiOn:
     """
     Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propogate to these functions.
 
@@ -245,23 +269,34 @@ class AsyncMultiOn:
         session_id: typing.Optional[str] = OMIT,
         max_steps: typing.Optional[int] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
+        use_proxy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BrowseOutput:
         """
-        Allows for browsing the web using detailed natural language instructions. The function supports multi-step command execution based on the `CONTINUE` status.
+        Allows for browsing the web using detailed natural language commands.
+
+        The function supports multi-step command execution based on the `CONTINUE` status of the Agent.
 
         Parameters:
             - cmd: str. A specific natural language instruction for the agent to execute
 
             - url: typing.Optional[str]. The URL to start or continue browsing from. (Default: google.com)
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
             - session_id: typing.Optional[str]. Continues the session with session_id if provided.
 
             - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
 
-            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page.
+            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page. (Default: False)
+
+            - temperature: typing.Optional[float]. The temperature of model
+
+            - mode: typing.Optional[Mode].
+
+            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
             - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
         ---
@@ -286,6 +321,12 @@ class AsyncMultiOn:
             _request["max_steps"] = max_steps
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
+        if temperature is not OMIT:
+            _request["temperature"] = temperature
+        if mode is not OMIT:
+            _request["mode"] = mode
+        if use_proxy is not OMIT:
+            _request["use_proxy"] = use_proxy
         _response = await self._client_wrapper.httpx_client.request(
             method="POST",
             url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "browse"),
@@ -321,6 +362,10 @@ class AsyncMultiOn:
         if _response.status_code == 401:
             raise UnauthorizedError(
                 typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
+            )
+        if _response.status_code == 402:
+            raise PaymentRequiredError(
+                typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
             )
         if _response.status_code == 422:
             raise UnprocessableEntityError(

@@ -25,7 +25,7 @@ class SessionStreamChunkFinalEventDataDelta(UncheckedBaseModel):
 
     status: str = pydantic_v1.Field()
     """
-    The current status of the session.
+    The final status of the browsing session. One of ["CONTINUE", "ASK_USER", "DONE"]
     """
 
     def json(self, **kwargs: typing.Any) -> str:

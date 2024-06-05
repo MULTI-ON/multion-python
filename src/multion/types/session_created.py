@@ -11,7 +11,7 @@ from ..core.unchecked_base_model import UncheckedBaseModel
 class SessionCreated(UncheckedBaseModel):
     status: str = pydantic_v1.Field()
     """
-    The current status of the session.
+    The final status of the browsing session. One of ["CONTINUE", "ASK_USER", "DONE"]
     """
 
     message: str = pydantic_v1.Field()
