@@ -15,6 +15,8 @@ from ..core.request_options import RequestOptions
 from ..core.unchecked_base_model import construct_type
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.http_validation_error import HttpValidationError
+from ..types.mode import Mode
+from ..types.retrieve_output import RetrieveOutput
 from ..types.session_created import SessionCreated
 from ..types.session_step_stream_chunk import SessionStepStreamChunk
 from ..types.session_step_success import SessionStepSuccess
@@ -38,17 +40,23 @@ class SessionsClient:
         *,
         url: str,
         local: typing.Optional[bool] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
+        use_proxy: typing.Optional[bool] = OMIT,
         browser_params: typing.Optional[CreateSessionInputBrowserParams] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionCreated:
         """
-        Creates a new session and returns session details including a unique session ID.
+        Creates a new session and returns session details including a unique session ID. A session remains active for 10 minutes of inactivity.
 
         Parameters:
             - url: str. The URL to create or continue session from.
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+            - mode: typing.Optional[Mode].
+
+            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
             - browser_params: typing.Optional[CreateSessionInputBrowserParams]. Object containing height and width for the browser screen size.
 
@@ -68,6 +76,10 @@ class SessionsClient:
         _request: typing.Dict[str, typing.Any] = {"url": url}
         if local is not OMIT:
             _request["local"] = local
+        if mode is not OMIT:
+            _request["mode"] = mode
+        if use_proxy is not OMIT:
+            _request["use_proxy"] = use_proxy
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
         if include_screenshot is not OMIT:
@@ -117,6 +129,8 @@ class SessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[SessionStepStreamChunk]:
@@ -131,6 +145,10 @@ class SessionsClient:
             - url: typing.Optional[str]. The URL to create or continue session from.
 
             - browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams]. Object containing height and width for the browser screen size.
+
+            - temperature: typing.Optional[float]. The temperature of model
+
+            - mode: typing.Optional[Mode].
 
             - include_screenshot: typing.Optional[bool].
 
@@ -150,6 +168,8 @@ class SessionsClient:
                 height=1.1,
                 width=1.1,
             ),
+            temperature=1.1,
+            mode="fast",
             include_screenshot=True,
         )
         """
@@ -158,6 +178,10 @@ class SessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if temperature is not OMIT:
+            _request["temperature"] = temperature
+        if mode is not OMIT:
+            _request["mode"] = mode
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         with self._client_wrapper.httpx_client.stream(
@@ -211,6 +235,8 @@ class SessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepRequestBrowserParams] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
@@ -225,6 +251,10 @@ class SessionsClient:
             - url: typing.Optional[str]. The URL to create or continue session from.
 
             - browser_params: typing.Optional[SessionsStepRequestBrowserParams]. Object containing height and width for the browser screen size.
+
+            - temperature: typing.Optional[float]. The temperature of model
+
+            - mode: typing.Optional[Mode].
 
             - include_screenshot: typing.Optional[bool].
 
@@ -245,6 +275,10 @@ class SessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if temperature is not OMIT:
+            _request["temperature"] = temperature
+        if mode is not OMIT:
+            _request["mode"] = mode
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
@@ -331,6 +365,113 @@ class SessionsClient:
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
+        if _response.status_code == 422:
+            raise UnprocessableEntityError(
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+            )
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    def retrieve(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        local: typing.Optional[bool] = OMIT,
+        start_page: typing.Optional[int] = OMIT,
+        end_page: typing.Optional[int] = OMIT,
+        render_js: typing.Optional[bool] = OMIT,
+        fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        """
+        Retrieve data from webpage based on a url and command that guides agents data extraction process.
+
+        Parameters:
+            - cmd: str. A specific natural language instruction on data the agent should extract.
+
+            - url: typing.Optional[str]. The URL to create or continue session from.
+
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+            - start_page: typing.Optional[int]. The starting page number to retrieve data from, where a page is a virtual viewport of the remote browser. If both start_page and end_page are not set, will disable pagination and retrieve the whole page. If end_page is set but not start_page, will retrieve up till end_page. If both are set, will retrieve from start_page to end_page. Useful for large websites with lots of data.
+
+            - end_page: typing.Optional[int]. The ending page number to retrieve data from, where a page is a virtual viewport of the remote browser. If both start_page and end_page are not set, will disable pagination and retrieve the whole page. If start_page is set but not end_page, will retrieve 5 pages starting from start_page. If both are set, will retrieve from start_page to end_page. Useful for large websites with lots of data.
+
+            - render_js: typing.Optional[bool]. Flag to include rich JS and ARIA elements in data retrieved. Useful for retrieving image URLs.
+
+            - fields: typing.Optional[typing.Sequence[str]]. list of comma separated fields you would like extracted from the page
+
+            - format: typing.Optional[typing.Literal["json"]]. Format of response data.
+
+            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response.
+
+            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
+        ---
+        from multion.client import MultiOn
+
+        client = MultiOn(
+            api_key="YOUR_API_KEY",
+        )
+        client.sessions.retrieve(
+            cmd="cmd",
+        )
+        """
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if url is not OMIT:
+            _request["url"] = url
+        if session_id is not OMIT:
+            _request["session_id"] = session_id
+        if local is not OMIT:
+            _request["local"] = local
+        if start_page is not OMIT:
+            _request["start_page"] = start_page
+        if end_page is not OMIT:
+            _request["end_page"] = end_page
+        if render_js is not OMIT:
+            _request["render_js"] = render_js
+        if fields is not OMIT:
+            _request["fields"] = fields
+        if format is not OMIT:
+            _request["format"] = format
+        if include_screenshot is not OMIT:
+            _request["include_screenshot"] = include_screenshot
+        _response = self._client_wrapper.httpx_client.request(
+            method="POST",
+            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
+            params=jsonable_encoder(
+                request_options.get("additional_query_parameters") if request_options is not None else None
+            ),
+            json=jsonable_encoder(_request)
+            if request_options is None or request_options.get("additional_body_parameters") is None
+            else {
+                **jsonable_encoder(_request),
+                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            },
+            headers=jsonable_encoder(
+                remove_none_from_dict(
+                    {
+                        **self._client_wrapper.get_headers(),
+                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
+                    }
+                )
+            ),
+            timeout=request_options.get("timeout_in_seconds")
+            if request_options is not None and request_options.get("timeout_in_seconds") is not None
+            else self._client_wrapper.get_timeout(),
+            retries=0,
+            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+        )
+        if 200 <= _response.status_code < 300:
+            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
@@ -447,17 +588,23 @@ class AsyncSessionsClient:
         *,
         url: str,
         local: typing.Optional[bool] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
+        use_proxy: typing.Optional[bool] = OMIT,
         browser_params: typing.Optional[CreateSessionInputBrowserParams] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionCreated:
         """
-        Creates a new session and returns session details including a unique session ID.
+        Creates a new session and returns session details including a unique session ID. A session remains active for 10 minutes of inactivity.
 
         Parameters:
             - url: str. The URL to create or continue session from.
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False)
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+            - mode: typing.Optional[Mode].
+
+            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
             - browser_params: typing.Optional[CreateSessionInputBrowserParams]. Object containing height and width for the browser screen size.
 
@@ -477,6 +624,10 @@ class AsyncSessionsClient:
         _request: typing.Dict[str, typing.Any] = {"url": url}
         if local is not OMIT:
             _request["local"] = local
+        if mode is not OMIT:
+            _request["mode"] = mode
+        if use_proxy is not OMIT:
+            _request["use_proxy"] = use_proxy
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
         if include_screenshot is not OMIT:
@@ -526,6 +677,8 @@ class AsyncSessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[SessionStepStreamChunk]:
@@ -540,6 +693,10 @@ class AsyncSessionsClient:
             - url: typing.Optional[str]. The URL to create or continue session from.
 
             - browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams]. Object containing height and width for the browser screen size.
+
+            - temperature: typing.Optional[float]. The temperature of model
+
+            - mode: typing.Optional[Mode].
 
             - include_screenshot: typing.Optional[bool].
 
@@ -559,6 +716,8 @@ class AsyncSessionsClient:
                 height=1.1,
                 width=1.1,
             ),
+            temperature=1.1,
+            mode="fast",
             include_screenshot=True,
         )
         """
@@ -567,6 +726,10 @@ class AsyncSessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if temperature is not OMIT:
+            _request["temperature"] = temperature
+        if mode is not OMIT:
+            _request["mode"] = mode
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         async with self._client_wrapper.httpx_client.stream(
@@ -620,6 +783,8 @@ class AsyncSessionsClient:
         cmd: str,
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepRequestBrowserParams] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SessionStepSuccess:
@@ -634,6 +799,10 @@ class AsyncSessionsClient:
             - url: typing.Optional[str]. The URL to create or continue session from.
 
             - browser_params: typing.Optional[SessionsStepRequestBrowserParams]. Object containing height and width for the browser screen size.
+
+            - temperature: typing.Optional[float]. The temperature of model
+
+            - mode: typing.Optional[Mode].
 
             - include_screenshot: typing.Optional[bool].
 
@@ -654,6 +823,10 @@ class AsyncSessionsClient:
             _request["url"] = url
         if browser_params is not OMIT:
             _request["browser_params"] = browser_params
+        if temperature is not OMIT:
+            _request["temperature"] = temperature
+        if mode is not OMIT:
+            _request["mode"] = mode
         if include_screenshot is not OMIT:
             _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
@@ -740,6 +913,113 @@ class AsyncSessionsClient:
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
+        if _response.status_code == 422:
+            raise UnprocessableEntityError(
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+            )
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def retrieve(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        local: typing.Optional[bool] = OMIT,
+        start_page: typing.Optional[int] = OMIT,
+        end_page: typing.Optional[int] = OMIT,
+        render_js: typing.Optional[bool] = OMIT,
+        fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        """
+        Retrieve data from webpage based on a url and command that guides agents data extraction process.
+
+        Parameters:
+            - cmd: str. A specific natural language instruction on data the agent should extract.
+
+            - url: typing.Optional[str]. The URL to create or continue session from.
+
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+            - start_page: typing.Optional[int]. The starting page number to retrieve data from, where a page is a virtual viewport of the remote browser. If both start_page and end_page are not set, will disable pagination and retrieve the whole page. If end_page is set but not start_page, will retrieve up till end_page. If both are set, will retrieve from start_page to end_page. Useful for large websites with lots of data.
+
+            - end_page: typing.Optional[int]. The ending page number to retrieve data from, where a page is a virtual viewport of the remote browser. If both start_page and end_page are not set, will disable pagination and retrieve the whole page. If start_page is set but not end_page, will retrieve 5 pages starting from start_page. If both are set, will retrieve from start_page to end_page. Useful for large websites with lots of data.
+
+            - render_js: typing.Optional[bool]. Flag to include rich JS and ARIA elements in data retrieved. Useful for retrieving image URLs.
+
+            - fields: typing.Optional[typing.Sequence[str]]. list of comma separated fields you would like extracted from the page
+
+            - format: typing.Optional[typing.Literal["json"]]. Format of response data.
+
+            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response.
+
+            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
+        ---
+        from multion.client import AsyncMultiOn
+
+        client = AsyncMultiOn(
+            api_key="YOUR_API_KEY",
+        )
+        await client.sessions.retrieve(
+            cmd="cmd",
+        )
+        """
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if url is not OMIT:
+            _request["url"] = url
+        if session_id is not OMIT:
+            _request["session_id"] = session_id
+        if local is not OMIT:
+            _request["local"] = local
+        if start_page is not OMIT:
+            _request["start_page"] = start_page
+        if end_page is not OMIT:
+            _request["end_page"] = end_page
+        if render_js is not OMIT:
+            _request["render_js"] = render_js
+        if fields is not OMIT:
+            _request["fields"] = fields
+        if format is not OMIT:
+            _request["format"] = format
+        if include_screenshot is not OMIT:
+            _request["include_screenshot"] = include_screenshot
+        _response = await self._client_wrapper.httpx_client.request(
+            method="POST",
+            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
+            params=jsonable_encoder(
+                request_options.get("additional_query_parameters") if request_options is not None else None
+            ),
+            json=jsonable_encoder(_request)
+            if request_options is None or request_options.get("additional_body_parameters") is None
+            else {
+                **jsonable_encoder(_request),
+                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            },
+            headers=jsonable_encoder(
+                remove_none_from_dict(
+                    {
+                        **self._client_wrapper.get_headers(),
+                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
+                    }
+                )
+            ),
+            timeout=request_options.get("timeout_in_seconds")
+            if request_options is not None and request_options.get("timeout_in_seconds") is not None
+            else self._client_wrapper.get_timeout(),
+            retries=0,
+            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+        )
+        if 200 <= _response.status_code < 300:
+            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
         if _response.status_code == 422:
             raise UnprocessableEntityError(
                 typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore

@@ -6,12 +6,13 @@ import typing
 from ..core.datetime_utils import serialize_datetime
 from ..core.pydantic_utilities import pydantic_v1
 from ..core.unchecked_base_model import UncheckedBaseModel
+from .session_step_success_metadata import SessionStepSuccessMetadata
 
 
 class SessionStepSuccess(UncheckedBaseModel):
     status: str = pydantic_v1.Field()
     """
-    The current status of the session.
+    The final status of the browsing session. One of ["CONTINUE", "ASK_USER", "DONE"]
     """
 
     message: str = pydantic_v1.Field()
@@ -32,6 +33,11 @@ class SessionStepSuccess(UncheckedBaseModel):
     screenshot: str = pydantic_v1.Field()
     """
     image url of the screenshot taken during the session.
+    """
+
+    metadata: typing.Optional[SessionStepSuccessMetadata] = pydantic_v1.Field(default=None)
+    """
+    Additional metadata for the step session.
     """
 
     def json(self, **kwargs: typing.Any) -> str:
