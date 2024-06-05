@@ -103,7 +103,6 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         agentops_api_key: typing.Optional[str] = os.getenv("AGENTOPS_API_KEY"),
         **kwargs
     ):
-        agentops_api_key = kwargs.pop("agentops_api_key", None)
         super().__init__(*args, **kwargs)
         self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
