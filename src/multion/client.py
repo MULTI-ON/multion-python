@@ -28,6 +28,8 @@ class MultiOn(BaseMultiOn):
 
         - api_key: typing.Optional[str].
 
+        - agentops_api_key: typing.Optional[str]. If you wish to visualize your MultiOn agent's execution at app.agentops.ai
+
         - timeout: typing.Optional[float]. The timeout to be used, in seconds, for requests by default the timeout is 60 seconds, unless a custom httpx client is used, in which case a default is not set.
 
         - follow_redirects: typing.Optional[bool]. Whether the default httpx client follows redirects or not, this is irrelevant if a custom httpx client is passed in.
@@ -38,11 +40,17 @@ class MultiOn(BaseMultiOn):
 
     client = MultiOn(
         api_key="YOUR_API_KEY",
+        agentops_api_key="YOUR_AGENTOPS_API_KEY",
     )
     """
 
     @wraps_function(BaseMultiOn.__init__)  # type: ignore
-    def __init__(self, *args, agentops_api_key: typing.Optional[str] = os.getenv("AGENTOPS_API_KEY"), **kwargs):
+    def __init__(
+        self,
+        *args,
+        agentops_api_key: typing.Optional[str] = os.getenv("AGENTOPS_API_KEY"),
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.sessions = WrappedSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
@@ -72,7 +80,7 @@ class AsyncMultiOn(AsyncBaseMultiOn):
 
         - api_key: typing.Optional[str].
 
-        - agentops_api_key: typing.Optional[str].
+        - agentops_api_key: typing.Optional[str]. If you wish to visualize your MultiOn agent's execution at app.agentops.ai
 
         - timeout: typing.Optional[float]. The timeout to be used, in seconds, for requests by default the timeout is 60 seconds, unless a custom httpx client is used, in which case a default is not set.
 
@@ -89,8 +97,12 @@ class AsyncMultiOn(AsyncBaseMultiOn):
     """
 
     @wraps_function(AsyncBaseMultiOn.__init__)  # type: ignore
-    def __init__(self, *args, **kwargs):
-        agentops_api_key = kwargs.pop("agentops_api_key", None)
+    def __init__(
+        self,
+        *args,
+        agentops_api_key: typing.Optional[str] = os.getenv("AGENTOPS_API_KEY"),
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper)
         if agentops_api_key is not None:
