@@ -86,7 +86,7 @@ from multion.client import MultiOn
 client = MultiOn()
 
 # Override retries for a specific method
-client.brwose(url="https://google.com", {
+client.browse(url="https://google.com", {
     max_retries=1
 })
 ```
@@ -104,7 +104,7 @@ client = MultiOn(
 )
 
 # Override timeout for a specific method
-client.brwose(url="https://google.com", {
+client.browse(url="https://google.com", {
     timeout_in_seconds=20.0
 })
 ```
