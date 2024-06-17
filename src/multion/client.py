@@ -129,4 +129,4 @@ class AsyncMultiOn(AsyncBaseMultiOn):
     @wraps_function(BaseMultiOn.retrieve)
     async def retrieve(self, *args, **kwargs) -> RetrieveOutput:
         agentops.start_session(tags=["multion-sdk"])
-        return super().retrieve(*args, **kwargs)
+        return await super().retrieve(*args, **kwargs)
