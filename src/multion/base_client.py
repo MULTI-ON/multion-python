@@ -26,6 +26,7 @@ from .types.http_validation_error import HttpValidationError
 from .types.internal_server_error_response import InternalServerErrorResponse
 from .types.mode import Mode
 from .types.payment_required_response import PaymentRequiredResponse
+from .types.retrieve_output import RetrieveOutput
 from .types.unauthorized_response import UnauthorizedResponse
 
 # this is used as the default value for optional parameters
@@ -68,7 +69,7 @@ class BaseMultiOn:
         follow_redirects: typing.Optional[bool] = True,
         httpx_client: typing.Optional[httpx.Client] = None,
     ):
-        _defaulted_timeout = timeout if timeout is not None else 60 if httpx_client is None else None
+        _defaulted_timeout = timeout if timeout is not None else 180 if httpx_client is None else None
         if api_key is None:
             raise ApiError(
                 body="The client must be instantiated be either passing in api_key or setting MULTION_API_KEY"
@@ -131,7 +132,7 @@ class BaseMultiOn:
             api_key="YOUR_API_KEY",
         )
         client.browse(
-            cmd="find the top post on hackernews",
+            cmd="Find the top post on Hackernews.",
             url="https://news.ycombinator.com/",
         )
         """
@@ -206,6 +207,122 @@ class BaseMultiOn:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
+    def retrieve(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        local: typing.Optional[bool] = OMIT,
+        fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        max_items: typing.Optional[float] = OMIT,
+        full_page: typing.Optional[bool] = OMIT,
+        render_js: typing.Optional[bool] = OMIT,
+        scroll_to_bottom: typing.Optional[bool] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        """
+        Retrieve data from webpage based on a url and natural language command that guides agents data extraction process.
+
+        The function can create a new session or be used as part of a session.
+
+        Parameters:
+            - cmd: str. A specific natural language instruction on data the agent should extract.
+
+            - url: typing.Optional[str]. The URL to create or continue session from.
+
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+            - fields: typing.Optional[typing.Sequence[str]]. List of fields (columns) to be outputted in data.
+
+            - format: typing.Optional[typing.Literal["json"]]. Format of response data. (Default: json)
+
+            - max_items: typing.Optional[float]. Maximum number of data items to retrieve. (Default: 100)
+
+            - full_page: typing.Optional[bool]. Flag to retrieve full page (Default: True). If set to false, the data will only be retrieved from the current session viewport.
+
+            - render_js: typing.Optional[bool]. Flag to include rich JS and ARIA elements in data retrieved. (Default: False)
+
+            - scroll_to_bottom: typing.Optional[bool]. Flag to scroll to the bottom of the page (Default: False). If set to true, the page will be scrolled to the bottom for a maximum of 5 seconds before data is retrieved.
+
+            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response. (Default: False)
+
+            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
+        ---
+        from multion.client import MultiOn
+
+        client = MultiOn(
+            api_key="YOUR_API_KEY",
+        )
+        client.retrieve(
+            cmd="Find the top post on Hackernews and get its title and points.",
+            url="https://news.ycombinator.com/",
+            fields=["title", "points"],
+        )
+        """
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if url is not OMIT:
+            _request["url"] = url
+        if session_id is not OMIT:
+            _request["session_id"] = session_id
+        if local is not OMIT:
+            _request["local"] = local
+        if fields is not OMIT:
+            _request["fields"] = fields
+        if format is not OMIT:
+            _request["format"] = format
+        if max_items is not OMIT:
+            _request["max_items"] = max_items
+        if full_page is not OMIT:
+            _request["full_page"] = full_page
+        if render_js is not OMIT:
+            _request["render_js"] = render_js
+        if scroll_to_bottom is not OMIT:
+            _request["scroll_to_bottom"] = scroll_to_bottom
+        if include_screenshot is not OMIT:
+            _request["include_screenshot"] = include_screenshot
+        _response = self._client_wrapper.httpx_client.request(
+            method="POST",
+            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
+            params=jsonable_encoder(
+                request_options.get("additional_query_parameters") if request_options is not None else None
+            ),
+            json=jsonable_encoder(_request)
+            if request_options is None or request_options.get("additional_body_parameters") is None
+            else {
+                **jsonable_encoder(_request),
+                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            },
+            headers=jsonable_encoder(
+                remove_none_from_dict(
+                    {
+                        **self._client_wrapper.get_headers(),
+                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
+                    }
+                )
+            ),
+            timeout=request_options.get("timeout_in_seconds")
+            if request_options is not None and request_options.get("timeout_in_seconds") is not None
+            else self._client_wrapper.get_timeout(),
+            retries=0,
+            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+        )
+        if 200 <= _response.status_code < 300:
+            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
+        if _response.status_code == 422:
+            raise UnprocessableEntityError(
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+            )
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
 
 class AsyncBaseMultiOn:
     """
@@ -243,7 +360,7 @@ class AsyncBaseMultiOn:
         follow_redirects: typing.Optional[bool] = True,
         httpx_client: typing.Optional[httpx.AsyncClient] = None,
     ):
-        _defaulted_timeout = timeout if timeout is not None else 60 if httpx_client is None else None
+        _defaulted_timeout = timeout if timeout is not None else 180 if httpx_client is None else None
         if api_key is None:
             raise ApiError(
                 body="The client must be instantiated be either passing in api_key or setting MULTION_API_KEY"
@@ -306,7 +423,7 @@ class AsyncBaseMultiOn:
             api_key="YOUR_API_KEY",
         )
         await client.browse(
-            cmd="find the top post on hackernews",
+            cmd="Find the top post on Hackernews.",
             url="https://news.ycombinator.com/",
         )
         """
@@ -374,6 +491,122 @@ class AsyncBaseMultiOn:
         if _response.status_code == 500:
             raise InternalServerError(
                 typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
+            )
+        try:
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, body=_response.text)
+        raise ApiError(status_code=_response.status_code, body=_response_json)
+
+    async def retrieve(
+        self,
+        *,
+        cmd: str,
+        url: typing.Optional[str] = OMIT,
+        session_id: typing.Optional[str] = OMIT,
+        local: typing.Optional[bool] = OMIT,
+        fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        max_items: typing.Optional[float] = OMIT,
+        full_page: typing.Optional[bool] = OMIT,
+        render_js: typing.Optional[bool] = OMIT,
+        scroll_to_bottom: typing.Optional[bool] = OMIT,
+        include_screenshot: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveOutput:
+        """
+        Retrieve data from webpage based on a url and natural language command that guides agents data extraction process.
+
+        The function can create a new session or be used as part of a session.
+
+        Parameters:
+            - cmd: str. A specific natural language instruction on data the agent should extract.
+
+            - url: typing.Optional[str]. The URL to create or continue session from.
+
+            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+
+            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+            - fields: typing.Optional[typing.Sequence[str]]. List of fields (columns) to be outputted in data.
+
+            - format: typing.Optional[typing.Literal["json"]]. Format of response data. (Default: json)
+
+            - max_items: typing.Optional[float]. Maximum number of data items to retrieve. (Default: 100)
+
+            - full_page: typing.Optional[bool]. Flag to retrieve full page (Default: True). If set to false, the data will only be retrieved from the current session viewport.
+
+            - render_js: typing.Optional[bool]. Flag to include rich JS and ARIA elements in data retrieved. (Default: False)
+
+            - scroll_to_bottom: typing.Optional[bool]. Flag to scroll to the bottom of the page (Default: False). If set to true, the page will be scrolled to the bottom for a maximum of 5 seconds before data is retrieved.
+
+            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response. (Default: False)
+
+            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
+        ---
+        from multion.client import AsyncMultiOn
+
+        client = AsyncMultiOn(
+            api_key="YOUR_API_KEY",
+        )
+        await client.retrieve(
+            cmd="Find the top post on Hackernews and get its title and points.",
+            url="https://news.ycombinator.com/",
+            fields=["title", "points"],
+        )
+        """
+        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
+        if url is not OMIT:
+            _request["url"] = url
+        if session_id is not OMIT:
+            _request["session_id"] = session_id
+        if local is not OMIT:
+            _request["local"] = local
+        if fields is not OMIT:
+            _request["fields"] = fields
+        if format is not OMIT:
+            _request["format"] = format
+        if max_items is not OMIT:
+            _request["max_items"] = max_items
+        if full_page is not OMIT:
+            _request["full_page"] = full_page
+        if render_js is not OMIT:
+            _request["render_js"] = render_js
+        if scroll_to_bottom is not OMIT:
+            _request["scroll_to_bottom"] = scroll_to_bottom
+        if include_screenshot is not OMIT:
+            _request["include_screenshot"] = include_screenshot
+        _response = await self._client_wrapper.httpx_client.request(
+            method="POST",
+            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
+            params=jsonable_encoder(
+                request_options.get("additional_query_parameters") if request_options is not None else None
+            ),
+            json=jsonable_encoder(_request)
+            if request_options is None or request_options.get("additional_body_parameters") is None
+            else {
+                **jsonable_encoder(_request),
+                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            },
+            headers=jsonable_encoder(
+                remove_none_from_dict(
+                    {
+                        **self._client_wrapper.get_headers(),
+                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
+                    }
+                )
+            ),
+            timeout=request_options.get("timeout_in_seconds")
+            if request_options is not None and request_options.get("timeout_in_seconds") is not None
+            else self._client_wrapper.get_timeout(),
+            retries=0,
+            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+        )
+        if 200 <= _response.status_code < 300:
+            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
+        if _response.status_code == 422:
+            raise UnprocessableEntityError(
+                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
             )
         try:
             _response_json = _response.json()
