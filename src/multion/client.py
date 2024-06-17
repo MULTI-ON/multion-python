@@ -9,8 +9,8 @@ import agentops  # type: ignore
 import os
 
 from .wrappers import wraps_function
+from .types.browse_output import BrowseOutput
 from .types.retrieve_output import RetrieveOutput
-
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -63,7 +63,7 @@ class MultiOn(BaseMultiOn):
 
     @agentops.record_function(event_name="browse")  # type: ignore
     @wraps_function(BaseMultiOn.browse)
-    def browse(self, *args, **kwargs):
+    def browse(self, *args, **kwargs) -> BrowseOutput:
         agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
 
@@ -121,12 +121,12 @@ class AsyncMultiOn(AsyncBaseMultiOn):
 
     @agentops.record_function(event_name="browse")  # type: ignore
     @wraps_function(AsyncBaseMultiOn.browse)
-    async def browse(self, *args, **kwargs):
+    async def browse(self, *args, **kwargs) -> BrowseOutput:
         agentops.start_session(tags=["multion-sdk"])
-        return super().browse(*args, **kwargs)
+        return await super().browse(*args, **kwargs)
 
     @agentops.record_function(event_name="retrieve")  # type: ignore
     @wraps_function(BaseMultiOn.retrieve)
     async def retrieve(self, *args, **kwargs) -> RetrieveOutput:
         agentops.start_session(tags=["multion-sdk"])
-        return super().retrieve(*args, **kwargs)
+        return await super().retrieve(*args, **kwargs)
