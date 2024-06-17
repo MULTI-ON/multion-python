@@ -3,7 +3,6 @@ import agentops  # type: ignore
 from agentops import ActionEvent, LLMEvent, ErrorEvent  # type: ignore
 
 import typing
-from ..types.retrieve_output import RetrieveOutput
 from ..types.session_created import SessionCreated
 from ..types.session_step_stream_chunk import SessionStepStreamChunk
 from ..types.session_step_success import SessionStepSuccess
@@ -13,6 +12,7 @@ from .types.sessions_close_response import SessionsCloseResponse
 OMIT = typing.cast(typing.Any, ...)
 
 from ..wrappers import wraps_function
+
 
 class WrappedSessionsClient(SessionsClient):
     @wraps_function(SessionsClient.create)  # type: ignore
@@ -50,7 +50,7 @@ class WrappedSessionsClient(SessionsClient):
                 yield chunk
 
         return generator()
-    
+
     @agentops.record_function(event_name="step")  # type: ignore
     @wraps_function(SessionsClient.step)
     def step(self, *args, **kwargs) -> SessionStepSuccess:
@@ -66,10 +66,6 @@ class WrappedSessionsClient(SessionsClient):
         agentops.end_session("Success")
         return close_response
 
-    @agentops.record_function(event_name="retrieve")  # type: ignore
-    @wraps_function(SessionsClient.retrieve)
-    def retrieve(self, *args, **kwargs) -> RetrieveOutput:
-        return super().retrieve(*args, **kwargs)
 
 class WrappedAsyncSessionsClient(AsyncSessionsClient):
     @wraps_function(AsyncSessionsClient.create)  # type: ignore

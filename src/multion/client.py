@@ -9,6 +9,7 @@ import agentops  # type: ignore
 import os
 
 from .wrappers import wraps_function
+from .types.retrieve_output import RetrieveOutput
 
 
 # this is used as the default value for optional parameters
@@ -66,6 +67,12 @@ class MultiOn(BaseMultiOn):
         agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
 
+    @agentops.record_function(event_name="retrieve")  # type: ignore
+    @wraps_function(BaseMultiOn.retrieve)
+    def retrieve(self, *args, **kwargs) -> RetrieveOutput:
+        agentops.start_session(tags=["multion-sdk"])
+        return super().retrieve(*args, **kwargs)
+
 
 class AsyncMultiOn(AsyncBaseMultiOn):
     """
@@ -117,3 +124,9 @@ class AsyncMultiOn(AsyncBaseMultiOn):
     async def browse(self, *args, **kwargs):
         agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
+
+    @agentops.record_function(event_name="retrieve")  # type: ignore
+    @wraps_function(BaseMultiOn.retrieve)
+    async def retrieve(self, *args, **kwargs) -> RetrieveOutput:
+        agentops.start_session(tags=["multion-sdk"])
+        return super().retrieve(*args, **kwargs)

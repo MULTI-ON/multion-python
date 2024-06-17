@@ -31,12 +31,7 @@ class RetrieveOutput(UncheckedBaseModel):
 
     status: str = pydantic_v1.Field()
     """
-    The current status of the session. CONTINUE if more pages are available. DONE if scrolled to the end of the page.
-    """
-
-    next_page: typing.Optional[int] = pydantic_v1.Field(default=None)
-    """
-    next page number. where each viewport is another page
+    The current status of the session.
     """
 
     data: typing.List[typing.Dict[str, typing.Any]] = pydantic_v1.Field()
