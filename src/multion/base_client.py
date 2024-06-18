@@ -2,15 +2,12 @@
 
 import os
 import typing
-import urllib.parse
 from json.decoder import JSONDecodeError
 
 import httpx
 
 from .core.api_error import ApiError
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
-from .core.jsonable_encoder import jsonable_encoder
-from .core.remove_none_from_dict import remove_none_from_dict
 from .core.request_options import RequestOptions
 from .core.unchecked_base_model import construct_type
 from .environment import MultiOnEnvironment
@@ -35,23 +32,34 @@ OMIT = typing.cast(typing.Any, ...)
 
 class BaseMultiOn:
     """
-    Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propogate to these functions.
+    Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propagate to these functions.
 
-    Parameters:
-        - base_url: typing.Optional[str]. The base url to use for requests from the client.
+    Parameters
+    ----------
+    base_url : typing.Optional[str]
+        The base url to use for requests from the client.
 
-        - environment: MultiOnEnvironment. The environment to use for requests from the client. from .environment import MultiOnEnvironment
+    environment : MultiOnEnvironment
+        The environment to use for requests from the client. from .environment import MultiOnEnvironment
 
-                                           Defaults to MultiOnEnvironment.DEFAULT
 
-        - api_key: typing.Optional[str].
 
-        - timeout: typing.Optional[float]. The timeout to be used, in seconds, for requests by default the timeout is 60 seconds, unless a custom httpx client is used, in which case a default is not set.
+        Defaults to MultiOnEnvironment.DEFAULT
 
-        - follow_redirects: typing.Optional[bool]. Whether the default httpx client follows redirects or not, this is irrelevant if a custom httpx client is passed in.
 
-        - httpx_client: typing.Optional[httpx.Client]. The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.
-    ---
+
+    api_key : typing.Optional[str]
+    timeout : typing.Optional[float]
+        The timeout to be used, in seconds, for requests. By default the timeout is 180 seconds, unless a custom httpx client is used, in which case this default is not enforced.
+
+    follow_redirects : typing.Optional[bool]
+        Whether the default httpx client follows redirects or not, this is irrelevant if a custom httpx client is passed in.
+
+    httpx_client : typing.Optional[httpx.Client]
+        The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.
+
+    Examples
+    --------
     from multion.client import MultiOn
 
     client = MultiOn(
@@ -67,7 +75,7 @@ class BaseMultiOn:
         api_key: typing.Optional[str] = os.getenv("MULTION_API_KEY"),
         timeout: typing.Optional[float] = None,
         follow_redirects: typing.Optional[bool] = True,
-        httpx_client: typing.Optional[httpx.Client] = None,
+        httpx_client: typing.Optional[httpx.Client] = None
     ):
         _defaulted_timeout = timeout if timeout is not None else 180 if httpx_client is None else None
         if api_key is None:
@@ -98,86 +106,77 @@ class BaseMultiOn:
         temperature: typing.Optional[float] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         use_proxy: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        request_options: typing.Optional[RequestOptions] = None
     ) -> BrowseOutput:
         """
         Allows for browsing the web using detailed natural language commands.
 
         The function supports multi-step command execution based on the `CONTINUE` status of the Agent.
 
-        Parameters:
-            - cmd: str. A specific natural language instruction for the agent to execute
+        Parameters
+        ----------
+        cmd : str
+            A specific natural language instruction for the agent to execute
 
-            - url: typing.Optional[str]. The URL to start or continue browsing from. (Default: google.com)
+        url : typing.Optional[str]
+            The URL to start or continue browsing from. (Default: google.com)
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+        local : typing.Optional[bool]
+            Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
-            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+        session_id : typing.Optional[str]
+            Continues the session with session_id if provided.
 
-            - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
+        max_steps : typing.Optional[int]
+            Maximum number of steps to execute. (Default: 20)
 
-            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page. (Default: False)
+        include_screenshot : typing.Optional[bool]
+            Boolean flag to include a screenshot of the final page. (Default: False)
 
-            - temperature: typing.Optional[float]. The temperature of model
+        temperature : typing.Optional[float]
+            The temperature of model
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
+        use_proxy : typing.Optional[bool]
+            Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BrowseOutput
+            Successful Response
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
             api_key="YOUR_API_KEY",
         )
         client.browse(
-            cmd="Find the top post on Hackernews.",
+            cmd="Find the top comment of the top post on Hackernews.",
             url="https://news.ycombinator.com/",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
-        if url is not OMIT:
-            _request["url"] = url
-        if local is not OMIT:
-            _request["local"] = local
-        if session_id is not OMIT:
-            _request["session_id"] = session_id
-        if max_steps is not OMIT:
-            _request["max_steps"] = max_steps
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
-        if temperature is not OMIT:
-            _request["temperature"] = temperature
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if use_proxy is not OMIT:
-            _request["use_proxy"] = use_proxy
         _response = self._client_wrapper.httpx_client.request(
+            "browse",
             method="POST",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "browse"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "local": local,
+                "session_id": session_id,
+                "max_steps": max_steps,
+                "include_screenshot": include_screenshot,
+                "temperature": temperature,
+                "mode": mode,
+                "use_proxy": use_proxy,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
@@ -221,95 +220,87 @@ class BaseMultiOn:
         render_js: typing.Optional[bool] = OMIT,
         scroll_to_bottom: typing.Optional[bool] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveOutput:
         """
         Retrieve data from webpage based on a url and natural language command that guides agents data extraction process.
 
         The function can create a new session or be used as part of a session.
 
-        Parameters:
-            - cmd: str. A specific natural language instruction on data the agent should extract.
+        Parameters
+        ----------
+        cmd : str
+            A specific natural language instruction on data the agent should extract.
 
-            - url: typing.Optional[str]. The URL to create or continue session from.
+        url : typing.Optional[str]
+            The URL to create or continue session from.
 
-            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+        session_id : typing.Optional[str]
+            Continues the session with session_id if provided.
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+        local : typing.Optional[bool]
+            Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
-            - fields: typing.Optional[typing.Sequence[str]]. List of fields (columns) to be outputted in data.
+        fields : typing.Optional[typing.Sequence[str]]
+            List of fields (columns) to be outputted in data.
 
-            - format: typing.Optional[typing.Literal["json"]]. Format of response data. (Default: json)
+        format : typing.Optional[typing.Literal["json"]]
+            Format of response data. (Default: json)
 
-            - max_items: typing.Optional[float]. Maximum number of data items to retrieve. (Default: 100)
+        max_items : typing.Optional[float]
+            Maximum number of data items to retrieve. (Default: 100)
 
-            - full_page: typing.Optional[bool]. Flag to retrieve full page (Default: True). If set to false, the data will only be retrieved from the current session viewport.
+        full_page : typing.Optional[bool]
+            Flag to retrieve full page (Default: True). If set to false, the data will only be retrieved from the current session viewport.
 
-            - render_js: typing.Optional[bool]. Flag to include rich JS and ARIA elements in data retrieved. (Default: False)
+        render_js : typing.Optional[bool]
+            Flag to include rich JS and ARIA elements in data retrieved. (Default: False)
 
-            - scroll_to_bottom: typing.Optional[bool]. Flag to scroll to the bottom of the page (Default: False). If set to true, the page will be scrolled to the bottom for a maximum of 5 seconds before data is retrieved.
+        scroll_to_bottom : typing.Optional[bool]
+            Flag to scroll to the bottom of the page (Default: False). If set to true, the page will be scrolled to the bottom for a maximum of 5 seconds before data is retrieved.
 
-            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response. (Default: False)
+        include_screenshot : typing.Optional[bool]
+            Flag to include a screenshot with the response. (Default: False)
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveOutput
+            Successful Response
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
             api_key="YOUR_API_KEY",
         )
         client.retrieve(
-            cmd="Find the top post on Hackernews and get its title and points.",
+            cmd="Find the top comment of the top post on Hackernews and get its title and points.",
             url="https://news.ycombinator.com/",
             fields=["title", "points"],
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
-        if url is not OMIT:
-            _request["url"] = url
-        if session_id is not OMIT:
-            _request["session_id"] = session_id
-        if local is not OMIT:
-            _request["local"] = local
-        if fields is not OMIT:
-            _request["fields"] = fields
-        if format is not OMIT:
-            _request["format"] = format
-        if max_items is not OMIT:
-            _request["max_items"] = max_items
-        if full_page is not OMIT:
-            _request["full_page"] = full_page
-        if render_js is not OMIT:
-            _request["render_js"] = render_js
-        if scroll_to_bottom is not OMIT:
-            _request["scroll_to_bottom"] = scroll_to_bottom
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
+            "retrieve",
             method="POST",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "session_id": session_id,
+                "local": local,
+                "fields": fields,
+                "format": format,
+                "max_items": max_items,
+                "full_page": full_page,
+                "render_js": render_js,
+                "scroll_to_bottom": scroll_to_bottom,
+                "include_screenshot": include_screenshot,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
@@ -326,23 +317,34 @@ class BaseMultiOn:
 
 class AsyncBaseMultiOn:
     """
-    Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propogate to these functions.
+    Use this class to access the different functions within the SDK. You can instantiate any number of clients with different configuration that will propagate to these functions.
 
-    Parameters:
-        - base_url: typing.Optional[str]. The base url to use for requests from the client.
+    Parameters
+    ----------
+    base_url : typing.Optional[str]
+        The base url to use for requests from the client.
 
-        - environment: MultiOnEnvironment. The environment to use for requests from the client. from .environment import MultiOnEnvironment
+    environment : MultiOnEnvironment
+        The environment to use for requests from the client. from .environment import MultiOnEnvironment
 
-                                           Defaults to MultiOnEnvironment.DEFAULT
 
-        - api_key: typing.Optional[str].
 
-        - timeout: typing.Optional[float]. The timeout to be used, in seconds, for requests by default the timeout is 60 seconds, unless a custom httpx client is used, in which case a default is not set.
+        Defaults to MultiOnEnvironment.DEFAULT
 
-        - follow_redirects: typing.Optional[bool]. Whether the default httpx client follows redirects or not, this is irrelevant if a custom httpx client is passed in.
 
-        - httpx_client: typing.Optional[httpx.AsyncClient]. The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.
-    ---
+
+    api_key : typing.Optional[str]
+    timeout : typing.Optional[float]
+        The timeout to be used, in seconds, for requests. By default the timeout is 180 seconds, unless a custom httpx client is used, in which case this default is not enforced.
+
+    follow_redirects : typing.Optional[bool]
+        Whether the default httpx client follows redirects or not, this is irrelevant if a custom httpx client is passed in.
+
+    httpx_client : typing.Optional[httpx.AsyncClient]
+        The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.
+
+    Examples
+    --------
     from multion.client import AsyncMultiOn
 
     client = AsyncMultiOn(
@@ -358,7 +360,7 @@ class AsyncBaseMultiOn:
         api_key: typing.Optional[str] = os.getenv("MULTION_API_KEY"),
         timeout: typing.Optional[float] = None,
         follow_redirects: typing.Optional[bool] = True,
-        httpx_client: typing.Optional[httpx.AsyncClient] = None,
+        httpx_client: typing.Optional[httpx.AsyncClient] = None
     ):
         _defaulted_timeout = timeout if timeout is not None else 180 if httpx_client is None else None
         if api_key is None:
@@ -389,86 +391,77 @@ class AsyncBaseMultiOn:
         temperature: typing.Optional[float] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         use_proxy: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        request_options: typing.Optional[RequestOptions] = None
     ) -> BrowseOutput:
         """
         Allows for browsing the web using detailed natural language commands.
 
         The function supports multi-step command execution based on the `CONTINUE` status of the Agent.
 
-        Parameters:
-            - cmd: str. A specific natural language instruction for the agent to execute
+        Parameters
+        ----------
+        cmd : str
+            A specific natural language instruction for the agent to execute
 
-            - url: typing.Optional[str]. The URL to start or continue browsing from. (Default: google.com)
+        url : typing.Optional[str]
+            The URL to start or continue browsing from. (Default: google.com)
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+        local : typing.Optional[bool]
+            Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
-            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+        session_id : typing.Optional[str]
+            Continues the session with session_id if provided.
 
-            - max_steps: typing.Optional[int]. Maximum number of steps to execute. (Default: 20)
+        max_steps : typing.Optional[int]
+            Maximum number of steps to execute. (Default: 20)
 
-            - include_screenshot: typing.Optional[bool]. Boolean flag to include a screenshot of the final page. (Default: False)
+        include_screenshot : typing.Optional[bool]
+            Boolean flag to include a screenshot of the final page. (Default: False)
 
-            - temperature: typing.Optional[float]. The temperature of model
+        temperature : typing.Optional[float]
+            The temperature of model
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
+        use_proxy : typing.Optional[bool]
+            Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BrowseOutput
+            Successful Response
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
             api_key="YOUR_API_KEY",
         )
         await client.browse(
-            cmd="Find the top post on Hackernews.",
+            cmd="Find the top comment of the top post on Hackernews.",
             url="https://news.ycombinator.com/",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
-        if url is not OMIT:
-            _request["url"] = url
-        if local is not OMIT:
-            _request["local"] = local
-        if session_id is not OMIT:
-            _request["session_id"] = session_id
-        if max_steps is not OMIT:
-            _request["max_steps"] = max_steps
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
-        if temperature is not OMIT:
-            _request["temperature"] = temperature
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if use_proxy is not OMIT:
-            _request["use_proxy"] = use_proxy
         _response = await self._client_wrapper.httpx_client.request(
+            "browse",
             method="POST",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "browse"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "local": local,
+                "session_id": session_id,
+                "max_steps": max_steps,
+                "include_screenshot": include_screenshot,
+                "temperature": temperature,
+                "mode": mode,
+                "use_proxy": use_proxy,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
@@ -512,95 +505,87 @@ class AsyncBaseMultiOn:
         render_js: typing.Optional[bool] = OMIT,
         scroll_to_bottom: typing.Optional[bool] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveOutput:
         """
         Retrieve data from webpage based on a url and natural language command that guides agents data extraction process.
 
         The function can create a new session or be used as part of a session.
 
-        Parameters:
-            - cmd: str. A specific natural language instruction on data the agent should extract.
+        Parameters
+        ----------
+        cmd : str
+            A specific natural language instruction on data the agent should extract.
 
-            - url: typing.Optional[str]. The URL to create or continue session from.
+        url : typing.Optional[str]
+            The URL to create or continue session from.
 
-            - session_id: typing.Optional[str]. Continues the session with session_id if provided.
+        session_id : typing.Optional[str]
+            Continues the session with session_id if provided.
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+        local : typing.Optional[bool]
+            Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
-            - fields: typing.Optional[typing.Sequence[str]]. List of fields (columns) to be outputted in data.
+        fields : typing.Optional[typing.Sequence[str]]
+            List of fields (columns) to be outputted in data.
 
-            - format: typing.Optional[typing.Literal["json"]]. Format of response data. (Default: json)
+        format : typing.Optional[typing.Literal["json"]]
+            Format of response data. (Default: json)
 
-            - max_items: typing.Optional[float]. Maximum number of data items to retrieve. (Default: 100)
+        max_items : typing.Optional[float]
+            Maximum number of data items to retrieve. (Default: 100)
 
-            - full_page: typing.Optional[bool]. Flag to retrieve full page (Default: True). If set to false, the data will only be retrieved from the current session viewport.
+        full_page : typing.Optional[bool]
+            Flag to retrieve full page (Default: True). If set to false, the data will only be retrieved from the current session viewport.
 
-            - render_js: typing.Optional[bool]. Flag to include rich JS and ARIA elements in data retrieved. (Default: False)
+        render_js : typing.Optional[bool]
+            Flag to include rich JS and ARIA elements in data retrieved. (Default: False)
 
-            - scroll_to_bottom: typing.Optional[bool]. Flag to scroll to the bottom of the page (Default: False). If set to true, the page will be scrolled to the bottom for a maximum of 5 seconds before data is retrieved.
+        scroll_to_bottom : typing.Optional[bool]
+            Flag to scroll to the bottom of the page (Default: False). If set to true, the page will be scrolled to the bottom for a maximum of 5 seconds before data is retrieved.
 
-            - include_screenshot: typing.Optional[bool]. Flag to include a screenshot with the response. (Default: False)
+        include_screenshot : typing.Optional[bool]
+            Flag to include a screenshot with the response. (Default: False)
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveOutput
+            Successful Response
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
             api_key="YOUR_API_KEY",
         )
         await client.retrieve(
-            cmd="Find the top post on Hackernews and get its title and points.",
+            cmd="Find the top comment of the top post on Hackernews and get its title and points.",
             url="https://news.ycombinator.com/",
             fields=["title", "points"],
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd}
-        if url is not OMIT:
-            _request["url"] = url
-        if session_id is not OMIT:
-            _request["session_id"] = session_id
-        if local is not OMIT:
-            _request["local"] = local
-        if fields is not OMIT:
-            _request["fields"] = fields
-        if format is not OMIT:
-            _request["format"] = format
-        if max_items is not OMIT:
-            _request["max_items"] = max_items
-        if full_page is not OMIT:
-            _request["full_page"] = full_page
-        if render_js is not OMIT:
-            _request["render_js"] = render_js
-        if scroll_to_bottom is not OMIT:
-            _request["scroll_to_bottom"] = scroll_to_bottom
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
+            "retrieve",
             method="POST",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "retrieve"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "session_id": session_id,
+                "local": local,
+                "fields": fields,
+                "format": format,
+                "max_items": max_items,
+                "full_page": full_page,
+                "render_js": render_js,
+                "scroll_to_bottom": scroll_to_bottom,
+                "include_screenshot": include_screenshot,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore

@@ -2,7 +2,6 @@
 
 import json
 import typing
-import urllib.parse
 from json.decoder import JSONDecodeError
 
 import httpx_sse
@@ -10,7 +9,6 @@ import httpx_sse
 from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.jsonable_encoder import jsonable_encoder
-from ..core.remove_none_from_dict import remove_none_from_dict
 from ..core.request_options import RequestOptions
 from ..core.unchecked_base_model import construct_type
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
@@ -48,21 +46,34 @@ class SessionsClient:
         """
         Creates a new session and returns session details including a unique session ID. A session remains active for 10 minutes of inactivity.
 
-        Parameters:
-            - url: str. The URL to create or continue session from.
+        Parameters
+        ----------
+        url : str
+            The URL to create or continue session from.
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+        local : typing.Optional[bool]
+            Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
+        use_proxy : typing.Optional[bool]
+            Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
-            - browser_params: typing.Optional[CreateSessionInputBrowserParams]. Object containing height and width for the browser screen size.
+        browser_params : typing.Optional[CreateSessionInputBrowserParams]
+            Object containing height and width for the browser screen size.
 
-            - include_screenshot: typing.Optional[bool].
+        include_screenshot : typing.Optional[bool]
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionCreated
+            Session successfully created
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -72,42 +83,19 @@ class SessionsClient:
             url="url",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"url": url}
-        if local is not OMIT:
-            _request["local"] = local
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if use_proxy is not OMIT:
-            _request["use_proxy"] = use_proxy
-        if browser_params is not OMIT:
-            _request["browser_params"] = browser_params
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
+            "session",
             method="POST",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "session"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "url": url,
+                "local": local,
+                "mode": mode,
+                "use_proxy": use_proxy,
+                "browser_params": browser_params,
+                "include_screenshot": include_screenshot,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionCreated, construct_type(type_=SessionCreated, object_=_response.json()))  # type: ignore
@@ -136,30 +124,43 @@ class SessionsClient:
         """
         Allows for browsing the web using detailed natural language instructions in a step mode for a session with a given session ID
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - cmd: str. A specific natural language instruction for the next step.
+        cmd : str
+            A specific natural language instruction for the next step.
 
-            - url: typing.Optional[str]. The URL to create or continue session from.
+        url : typing.Optional[str]
+            The URL to create or continue session from.
 
-            - browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams]. Object containing height and width for the browser screen size.
+        browser_params : typing.Optional[SessionsStepStreamRequestBrowserParams]
+            Object containing height and width for the browser screen size.
 
-            - temperature: typing.Optional[float]. The temperature of model
+        temperature : typing.Optional[float]
+            The temperature of model
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - include_screenshot: typing.Optional[bool].
+        include_screenshot : typing.Optional[bool]
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Yields
+        ------
+        typing.Iterator[SessionStepStreamChunk]
+
+
+        Examples
+        --------
         from multion import SessionsStepStreamRequestBrowserParams
         from multion.client import MultiOn
 
         client = MultiOn(
             api_key="YOUR_API_KEY",
         )
-        client.sessions.step_stream(
+        response = client.sessions.step_stream(
             session_id="string",
             cmd="string",
             url="string",
@@ -171,45 +172,23 @@ class SessionsClient:
             mode="fast",
             include_screenshot=True,
         )
+        for chunk in response:
+            yield chunk
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "stream": True}
-        if url is not OMIT:
-            _request["url"] = url
-        if browser_params is not OMIT:
-            _request["browser_params"] = browser_params
-        if temperature is not OMIT:
-            _request["temperature"] = temperature
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         with self._client_wrapper.httpx_client.stream(
+            f"session/{jsonable_encoder(session_id)}",
             method="POST",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"session/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "browser_params": browser_params,
+                "temperature": temperature,
+                "mode": mode,
+                "include_screenshot": include_screenshot,
+                "stream": True,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         ) as _response:
             if 200 <= _response.status_code < 300:
                 _event_source = httpx_sse.EventSource(_response)
@@ -242,23 +221,36 @@ class SessionsClient:
         """
         Allows for browsing the web using detailed natural language instructions in a step mode for a session with a given session ID
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - cmd: str. A specific natural language instruction for the next step.
+        cmd : str
+            A specific natural language instruction for the next step.
 
-            - url: typing.Optional[str]. The URL to create or continue session from.
+        url : typing.Optional[str]
+            The URL to create or continue session from.
 
-            - browser_params: typing.Optional[SessionsStepRequestBrowserParams]. Object containing height and width for the browser screen size.
+        browser_params : typing.Optional[SessionsStepRequestBrowserParams]
+            Object containing height and width for the browser screen size.
 
-            - temperature: typing.Optional[float]. The temperature of model
+        temperature : typing.Optional[float]
+            The temperature of model
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - include_screenshot: typing.Optional[bool].
+        include_screenshot : typing.Optional[bool]
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionStepSuccess
+
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -269,44 +261,20 @@ class SessionsClient:
             cmd="cmd",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "stream": False}
-        if url is not OMIT:
-            _request["url"] = url
-        if browser_params is not OMIT:
-            _request["browser_params"] = browser_params
-        if temperature is not OMIT:
-            _request["temperature"] = temperature
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         _response = self._client_wrapper.httpx_client.request(
+            f"session/{jsonable_encoder(session_id)}",
             method="POST",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"session/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "browser_params": browser_params,
+                "temperature": temperature,
+                "mode": mode,
+                "include_screenshot": include_screenshot,
+                "stream": False,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionStepSuccess, construct_type(type_=SessionStepSuccess, object_=_response.json()))  # type: ignore
@@ -326,11 +294,20 @@ class SessionsClient:
         """
         Closes the session.
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionsCloseResponse
+            Successful Response
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -341,26 +318,7 @@ class SessionsClient:
         )
         """
         _response = self._client_wrapper.httpx_client.request(
-            method="DELETE",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"session/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            f"session/{jsonable_encoder(session_id)}", method="DELETE", request_options=request_options
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
@@ -380,11 +338,20 @@ class SessionsClient:
         """
         Retrieve the screenshot of the session.
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionsScreenshotResponse
+            Successful Response
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -395,26 +362,7 @@ class SessionsClient:
         )
         """
         _response = self._client_wrapper.httpx_client.request(
-            method="GET",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"screenshot/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            f"screenshot/{jsonable_encoder(session_id)}", method="GET", request_options=request_options
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsScreenshotResponse, construct_type(type_=SessionsScreenshotResponse, object_=_response.json()))  # type: ignore
@@ -432,9 +380,18 @@ class SessionsClient:
         """
         Retrieve a list of active session IDs.
 
-        Parameters:
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionsListResponse
+            Successful Response
+
+        Examples
+        --------
         from multion.client import MultiOn
 
         client = MultiOn(
@@ -442,26 +399,7 @@ class SessionsClient:
         )
         client.sessions.list()
         """
-        _response = self._client_wrapper.httpx_client.request(
-            method="GET",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "sessions"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
-        )
+        _response = self._client_wrapper.httpx_client.request("sessions", method="GET", request_options=request_options)
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsListResponse, construct_type(type_=SessionsListResponse, object_=_response.json()))  # type: ignore
         try:
@@ -489,21 +427,34 @@ class AsyncSessionsClient:
         """
         Creates a new session and returns session details including a unique session ID. A session remains active for 10 minutes of inactivity.
 
-        Parameters:
-            - url: str. The URL to create or continue session from.
+        Parameters
+        ----------
+        url : str
+            The URL to create or continue session from.
 
-            - local: typing.Optional[bool]. Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+        local : typing.Optional[bool]
+            Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - use_proxy: typing.Optional[bool]. Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
+        use_proxy : typing.Optional[bool]
+            Boolean flag to use a proxy for the session (Default: False). Each Session gets a new Residential IP.
 
-            - browser_params: typing.Optional[CreateSessionInputBrowserParams]. Object containing height and width for the browser screen size.
+        browser_params : typing.Optional[CreateSessionInputBrowserParams]
+            Object containing height and width for the browser screen size.
 
-            - include_screenshot: typing.Optional[bool].
+        include_screenshot : typing.Optional[bool]
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionCreated
+            Session successfully created
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -513,42 +464,19 @@ class AsyncSessionsClient:
             url="url",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"url": url}
-        if local is not OMIT:
-            _request["local"] = local
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if use_proxy is not OMIT:
-            _request["use_proxy"] = use_proxy
-        if browser_params is not OMIT:
-            _request["browser_params"] = browser_params
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
+            "session",
             method="POST",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "session"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "url": url,
+                "local": local,
+                "mode": mode,
+                "use_proxy": use_proxy,
+                "browser_params": browser_params,
+                "include_screenshot": include_screenshot,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionCreated, construct_type(type_=SessionCreated, object_=_response.json()))  # type: ignore
@@ -577,30 +505,43 @@ class AsyncSessionsClient:
         """
         Allows for browsing the web using detailed natural language instructions in a step mode for a session with a given session ID
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - cmd: str. A specific natural language instruction for the next step.
+        cmd : str
+            A specific natural language instruction for the next step.
 
-            - url: typing.Optional[str]. The URL to create or continue session from.
+        url : typing.Optional[str]
+            The URL to create or continue session from.
 
-            - browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams]. Object containing height and width for the browser screen size.
+        browser_params : typing.Optional[SessionsStepStreamRequestBrowserParams]
+            Object containing height and width for the browser screen size.
 
-            - temperature: typing.Optional[float]. The temperature of model
+        temperature : typing.Optional[float]
+            The temperature of model
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - include_screenshot: typing.Optional[bool].
+        include_screenshot : typing.Optional[bool]
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Yields
+        ------
+        typing.AsyncIterator[SessionStepStreamChunk]
+
+
+        Examples
+        --------
         from multion import SessionsStepStreamRequestBrowserParams
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
             api_key="YOUR_API_KEY",
         )
-        await client.sessions.step_stream(
+        response = await client.sessions.step_stream(
             session_id="string",
             cmd="string",
             url="string",
@@ -612,45 +553,23 @@ class AsyncSessionsClient:
             mode="fast",
             include_screenshot=True,
         )
+        async for chunk in response:
+            yield chunk
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "stream": True}
-        if url is not OMIT:
-            _request["url"] = url
-        if browser_params is not OMIT:
-            _request["browser_params"] = browser_params
-        if temperature is not OMIT:
-            _request["temperature"] = temperature
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         async with self._client_wrapper.httpx_client.stream(
+            f"session/{jsonable_encoder(session_id)}",
             method="POST",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"session/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "browser_params": browser_params,
+                "temperature": temperature,
+                "mode": mode,
+                "include_screenshot": include_screenshot,
+                "stream": True,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         ) as _response:
             if 200 <= _response.status_code < 300:
                 _event_source = httpx_sse.EventSource(_response)
@@ -683,23 +602,36 @@ class AsyncSessionsClient:
         """
         Allows for browsing the web using detailed natural language instructions in a step mode for a session with a given session ID
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - cmd: str. A specific natural language instruction for the next step.
+        cmd : str
+            A specific natural language instruction for the next step.
 
-            - url: typing.Optional[str]. The URL to create or continue session from.
+        url : typing.Optional[str]
+            The URL to create or continue session from.
 
-            - browser_params: typing.Optional[SessionsStepRequestBrowserParams]. Object containing height and width for the browser screen size.
+        browser_params : typing.Optional[SessionsStepRequestBrowserParams]
+            Object containing height and width for the browser screen size.
 
-            - temperature: typing.Optional[float]. The temperature of model
+        temperature : typing.Optional[float]
+            The temperature of model
 
-            - mode: typing.Optional[Mode].
+        mode : typing.Optional[Mode]
 
-            - include_screenshot: typing.Optional[bool].
+        include_screenshot : typing.Optional[bool]
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionStepSuccess
+
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -710,44 +642,20 @@ class AsyncSessionsClient:
             cmd="cmd",
         )
         """
-        _request: typing.Dict[str, typing.Any] = {"cmd": cmd, "stream": False}
-        if url is not OMIT:
-            _request["url"] = url
-        if browser_params is not OMIT:
-            _request["browser_params"] = browser_params
-        if temperature is not OMIT:
-            _request["temperature"] = temperature
-        if mode is not OMIT:
-            _request["mode"] = mode
-        if include_screenshot is not OMIT:
-            _request["include_screenshot"] = include_screenshot
         _response = await self._client_wrapper.httpx_client.request(
+            f"session/{jsonable_encoder(session_id)}",
             method="POST",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"session/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            json=jsonable_encoder(_request)
-            if request_options is None or request_options.get("additional_body_parameters") is None
-            else {
-                **jsonable_encoder(_request),
-                **(jsonable_encoder(remove_none_from_dict(request_options.get("additional_body_parameters", {})))),
+            json={
+                "cmd": cmd,
+                "url": url,
+                "browser_params": browser_params,
+                "temperature": temperature,
+                "mode": mode,
+                "include_screenshot": include_screenshot,
+                "stream": False,
             },
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            request_options=request_options,
+            omit=OMIT,
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionStepSuccess, construct_type(type_=SessionStepSuccess, object_=_response.json()))  # type: ignore
@@ -767,11 +675,20 @@ class AsyncSessionsClient:
         """
         Closes the session.
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionsCloseResponse
+            Successful Response
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -782,26 +699,7 @@ class AsyncSessionsClient:
         )
         """
         _response = await self._client_wrapper.httpx_client.request(
-            method="DELETE",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"session/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            f"session/{jsonable_encoder(session_id)}", method="DELETE", request_options=request_options
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsCloseResponse, construct_type(type_=SessionsCloseResponse, object_=_response.json()))  # type: ignore
@@ -821,11 +719,20 @@ class AsyncSessionsClient:
         """
         Retrieve the screenshot of the session.
 
-        Parameters:
-            - session_id: str.
+        Parameters
+        ----------
+        session_id : str
 
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionsScreenshotResponse
+            Successful Response
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -836,26 +743,7 @@ class AsyncSessionsClient:
         )
         """
         _response = await self._client_wrapper.httpx_client.request(
-            method="GET",
-            url=urllib.parse.urljoin(
-                f"{self._client_wrapper.get_base_url()}/", f"screenshot/{jsonable_encoder(session_id)}"
-            ),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            f"screenshot/{jsonable_encoder(session_id)}", method="GET", request_options=request_options
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsScreenshotResponse, construct_type(type_=SessionsScreenshotResponse, object_=_response.json()))  # type: ignore
@@ -873,9 +761,18 @@ class AsyncSessionsClient:
         """
         Retrieve a list of active session IDs.
 
-        Parameters:
-            - request_options: typing.Optional[RequestOptions]. Request-specific configuration.
-        ---
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SessionsListResponse
+            Successful Response
+
+        Examples
+        --------
         from multion.client import AsyncMultiOn
 
         client = AsyncMultiOn(
@@ -884,24 +781,7 @@ class AsyncSessionsClient:
         await client.sessions.list()
         """
         _response = await self._client_wrapper.httpx_client.request(
-            method="GET",
-            url=urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "sessions"),
-            params=jsonable_encoder(
-                request_options.get("additional_query_parameters") if request_options is not None else None
-            ),
-            headers=jsonable_encoder(
-                remove_none_from_dict(
-                    {
-                        **self._client_wrapper.get_headers(),
-                        **(request_options.get("additional_headers", {}) if request_options is not None else {}),
-                    }
-                )
-            ),
-            timeout=request_options.get("timeout_in_seconds")
-            if request_options is not None and request_options.get("timeout_in_seconds") is not None
-            else self._client_wrapper.get_timeout(),
-            retries=0,
-            max_retries=request_options.get("max_retries") if request_options is not None else 0,  # type: ignore
+            "sessions", method="GET", request_options=request_options
         )
         if 200 <= _response.status_code < 300:
             return typing.cast(SessionsListResponse, construct_type(type_=SessionsListResponse, object_=_response.json()))  # type: ignore

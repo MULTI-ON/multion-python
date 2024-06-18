@@ -17,7 +17,7 @@ class BaseClientWrapper:
         headers: typing.Dict[str, str] = {
             "X-Fern-Language": "Python",
             "X-Fern-SDK-Name": "multion",
-            "X-Fern-SDK-Version": "1.3.0",
+            "X-Fern-SDK-Version": "1.3.1",
         }
         headers["X_MULTION_API_KEY"] = self.api_key
         return headers
@@ -34,7 +34,12 @@ class SyncClientWrapper(BaseClientWrapper):
         self, *, api_key: str, base_url: str, timeout: typing.Optional[float] = None, httpx_client: httpx.Client
     ):
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
-        self.httpx_client = HttpClient(httpx_client=httpx_client)
+        self.httpx_client = HttpClient(
+            httpx_client=httpx_client,
+            base_headers=self.get_headers(),
+            base_timeout=self.get_timeout(),
+            base_url=self.get_base_url(),
+        )
 
 
 class AsyncClientWrapper(BaseClientWrapper):
@@ -42,4 +47,9 @@ class AsyncClientWrapper(BaseClientWrapper):
         self, *, api_key: str, base_url: str, timeout: typing.Optional[float] = None, httpx_client: httpx.AsyncClient
     ):
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
-        self.httpx_client = AsyncHttpClient(httpx_client=httpx_client)
+        self.httpx_client = AsyncHttpClient(
+            httpx_client=httpx_client,
+            base_headers=self.get_headers(),
+            base_timeout=self.get_timeout(),
+            base_url=self.get_base_url(),
+        )
