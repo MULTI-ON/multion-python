@@ -56,9 +56,11 @@ class MultiOn(BaseMultiOn):
     ):
         print('initing multion client...!!')
         super().__init__(*args, **kwargs)
-        self.sessions = WrappedSessionsClient(
-            client_wrapper=self._client_wrapper)
         self._agentops_api_key = agentops_api_key
+
+        self.sessions = WrappedSessionsClient(
+            client_wrapper=self._client_wrapper, use_agentops=self._agentops_api_key is not None)
+
         if self._agentops_api_key is not None:
             print('Initing key', agentops_api_key)
             agentops.init(
@@ -127,9 +129,9 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.sessions = WrappedAsyncSessionsClient(
-            client_wrapper=self._client_wrapper)
         self._agentops_api_key = agentops_api_key
+        self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper,
+                                                   use_agentops=self._agentops_api_key is not None)
         if agentops_api_key is not None:
             print('Initing key async', agentops_api_key)
             agentops.init(
