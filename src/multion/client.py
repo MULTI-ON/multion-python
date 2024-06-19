@@ -54,7 +54,7 @@ class MultiOn(BaseMultiOn):
         agentops_api_key: typing.Optional[str] = os.getenv("AGENTOPS_API_KEY"),
         **kwargs
     ):
-        print('initing multion client...!!')
+
         super().__init__(*args, **kwargs)
         self._agentops_api_key = agentops_api_key
 
@@ -62,7 +62,6 @@ class MultiOn(BaseMultiOn):
             client_wrapper=self._client_wrapper, use_agentops=self._agentops_api_key is not None)
 
         if self._agentops_api_key is not None:
-            print('Initing key', agentops_api_key)
             agentops.init(
                 api_key=agentops_api_key,
                 parent_key=os.getenv("AGENTOPS_PARENT_KEY"),
@@ -79,15 +78,12 @@ class MultiOn(BaseMultiOn):
     @wraps_function(BaseMultiOn.browse)
     def browse(self, *args, **kwargs) -> BrowseOutput:
         if self._agentops_api_key is not None:
-            print('Starting session browse')
-            print(agentops.Client().config)
             agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
 
     @wraps_function(BaseMultiOn.retrieve)
     def retrieve(self, *args, **kwargs) -> RetrieveOutput:
         if self._agentops_api_key is not None:
-            print('Starting session retrieve')
             agentops.start_session(tags=["multion-sdk"])
         return super().retrieve(*args, **kwargs)
 
@@ -133,7 +129,6 @@ class AsyncMultiOn(AsyncBaseMultiOn):
         self.sessions = WrappedAsyncSessionsClient(client_wrapper=self._client_wrapper,
                                                    use_agentops=self._agentops_api_key is not None)
         if agentops_api_key is not None:
-            print('Initing key async', agentops_api_key)
             agentops.init(
                 api_key=agentops_api_key,
                 parent_key=os.getenv("AGENTOPS_PARENT_KEY"),
@@ -149,7 +144,6 @@ class AsyncMultiOn(AsyncBaseMultiOn):
     @wraps_function(AsyncBaseMultiOn.browse)
     async def browse(self, *args, **kwargs) -> BrowseOutput:
         if self._agentops_api_key is not None:
-            print('Starting session browse client async')
             agentops.start_session(tags=["multion-sdk"])
         return await super().browse(*args, **kwargs)
 
@@ -157,6 +151,5 @@ class AsyncMultiOn(AsyncBaseMultiOn):
     @wraps_function(BaseMultiOn.retrieve)
     async def retrieve(self, *args, **kwargs) -> RetrieveOutput:
         if self._agentops_api_key is not None:
-            print('Starting session retrieve client async')
             agentops.start_session(tags=["multion-sdk"])
         return await super().retrieve(*args, **kwargs)
