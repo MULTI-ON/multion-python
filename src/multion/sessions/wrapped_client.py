@@ -1,4 +1,3 @@
-from ..wrappers import wraps_function
 from multion.sessions.client import AsyncSessionsClient, SessionsClient
 import agentops  # type: ignore
 from agentops import ActionEvent, LLMEvent, ErrorEvent  # type: ignore
@@ -12,16 +11,13 @@ from .types.sessions_close_response import SessionsCloseResponse
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
 
+from ..wrappers import wraps_function
+
 
 class WrappedSessionsClient(SessionsClient):
-    def __init__(self, use_agentops: bool = False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.use_agentops = use_agentops
-
     @wraps_function(SessionsClient.create)  # type: ignore
     def create(self, *args, **kwargs) -> SessionCreated:
-        if self.use_agentops:
-            agentops.start_session(tags=["multion-sdk"])
+        agentops.start_session(tags=["multion-sdk"])
         try:
             return super().create(*args, **kwargs)
         except Exception as e:
@@ -72,14 +68,9 @@ class WrappedSessionsClient(SessionsClient):
 
 
 class WrappedAsyncSessionsClient(AsyncSessionsClient):
-    def __init__(self, use_agentops: bool = False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.use_agentops = use_agentops
-
     @wraps_function(AsyncSessionsClient.create)  # type: ignore
     async def create(self, *args, **kwargs) -> SessionCreated:
-        if self.use_agentops:
-            agentops.start_session(tags=["multion-sdk"])
+        agentops.start_session(tags=["multion-sdk"])
         try:
             return await super().create(*args, **kwargs)
         except Exception as e:
