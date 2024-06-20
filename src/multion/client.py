@@ -67,14 +67,10 @@ class MultiOn(BaseMultiOn):
 
     @wraps_function(BaseMultiOn.browse)
     def _browse(self, *args, **kwargs) -> BrowseOutput:
-        if self._agentops_api_key is not None:
-            agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
 
     @wraps_function(BaseMultiOn.retrieve)
     def _retrieve(self, *args, **kwargs) -> RetrieveOutput:
-        if self._agentops_api_key is not None:
-            agentops.start_session(tags=["multion-sdk"])
         return super().retrieve(*args, **kwargs)
 
     def browse(self, *args, **kwargs) -> BrowseOutput:
@@ -139,14 +135,10 @@ class AsyncMultiOn(AsyncBaseMultiOn):
 
     @wraps_function(AsyncBaseMultiOn.browse)
     async def _browse(self, *args, **kwargs) -> BrowseOutput:
-        if self._agentops_api_key is not None:
-            agentops.start_session(tags=["multion-sdk"])
         return await super().browse(*args, **kwargs)
 
     @wraps_function(BaseMultiOn.retrieve)
     async def _retrieve(self, *args, **kwargs) -> RetrieveOutput:
-        if self._agentops_api_key is not None:
-            agentops.start_session(tags=["multion-sdk"])
         return await super().retrieve(*args, **kwargs)
 
     async def browse(self, *args, **kwargs) -> BrowseOutput:
