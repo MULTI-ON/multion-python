@@ -1,5 +1,4 @@
 import typing
-
 from .base_client import AsyncBaseMultiOn, BaseMultiOn
 from .sessions.wrapped_client import (
     WrappedAsyncSessionsClient,
@@ -14,8 +13,6 @@ from .types.retrieve_output import RetrieveOutput
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
-
-record_function = lambda *args, **kwargs: lambda fn: fn
 
 
 class MultiOn(BaseMultiOn):
@@ -67,25 +64,30 @@ class MultiOn(BaseMultiOn):
                 parent_key=os.getenv("AGENTOPS_PARENT_KEY"),
                 auto_start_session=False,
             )
-            # Redefine the record_function globally
-            global record_function
-            record_function = agentops.record_function
-            # Apply the decorator at runtime
-            self.browse = record_function(event_name="browse")(self.browse)
-            self.retrieve = record_function(
-                event_name="retrieve")(self.retrieve)
 
     @wraps_function(BaseMultiOn.browse)
-    def browse(self, *args, **kwargs) -> BrowseOutput:
+    def _browse(self, *args, **kwargs) -> BrowseOutput:
         if self._agentops_api_key is not None:
             agentops.start_session(tags=["multion-sdk"])
         return super().browse(*args, **kwargs)
 
     @wraps_function(BaseMultiOn.retrieve)
-    def retrieve(self, *args, **kwargs) -> RetrieveOutput:
+    def _retrieve(self, *args, **kwargs) -> RetrieveOutput:
         if self._agentops_api_key is not None:
             agentops.start_session(tags=["multion-sdk"])
         return super().retrieve(*args, **kwargs)
+
+    def browse(self, *args, **kwargs) -> BrowseOutput:
+        if self._agentops_api_key is not None:
+            agentops.start_session(tags=["multion-sdk"])
+            return agentops.record_function(event_name="browse")(self._browse)
+        return self._browse(*args, **kwargs)
+
+    def retrieve(self, *args, **kwargs) -> RetrieveOutput:
+        if self._agentops_api_key is not None:
+            agentops.start_session(tags=["multion-sdk"])
+            return agentops.record_function(event_name="retrieve")(self._retrieve)
+        return self._retrieve(*args, **kwargs)
 
 
 class AsyncMultiOn(AsyncBaseMultiOn):
@@ -134,22 +136,27 @@ class AsyncMultiOn(AsyncBaseMultiOn):
                 parent_key=os.getenv("AGENTOPS_PARENT_KEY"),
                 auto_start_session=False,
             )
-            # If agentops is set, we need to wrap the record function
-            global record_function
-            record_function = agentops.record_function
 
-        record_function = agentops.record_function
-
-    @record_function(event_name="browse")  # type: ignore
     @wraps_function(AsyncBaseMultiOn.browse)
-    async def browse(self, *args, **kwargs) -> BrowseOutput:
+    async def _browse(self, *args, **kwargs) -> BrowseOutput:
         if self._agentops_api_key is not None:
             agentops.start_session(tags=["multion-sdk"])
         return await super().browse(*args, **kwargs)
 
-    @record_function(event_name="retrieve")  # type: ignore
     @wraps_function(BaseMultiOn.retrieve)
-    async def retrieve(self, *args, **kwargs) -> RetrieveOutput:
+    async def _retrieve(self, *args, **kwargs) -> RetrieveOutput:
         if self._agentops_api_key is not None:
             agentops.start_session(tags=["multion-sdk"])
         return await super().retrieve(*args, **kwargs)
+
+    async def browse(self, *args, **kwargs) -> BrowseOutput:
+        if self._agentops_api_key is not None:
+            agentops.start_session(tags=["multion-sdk"])
+            return await agentops.record_function(event_name="browse")(self._browse)
+        return await self._browse(*args, **kwargs)
+
+    async def retrieve(self, *args, **kwargs) -> RetrieveOutput:
+        if self._agentops_api_key is not None:
+            agentops.start_session(tags=["multion-sdk"])
+            return await agentops.record_function(event_name="retrieve")(self._retrieve)
+        return await self._retrieve(*args, **kwargs)
