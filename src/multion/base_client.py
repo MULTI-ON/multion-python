@@ -157,7 +157,7 @@ class BaseMultiOn:
             api_key="YOUR_API_KEY",
         )
         client.browse(
-            cmd="Find the top comment of the top post on Hackernews.",
+            cmd="Find the top post on Hackernews.",
             url="https://news.ycombinator.com/",
         )
         """
@@ -278,7 +278,7 @@ class BaseMultiOn:
             api_key="YOUR_API_KEY",
         )
         client.retrieve(
-            cmd="Find the top comment of the top post on Hackernews and get its title and points.",
+            cmd="Find the top post on Hackernews and get its title and points.",
             url="https://news.ycombinator.com/",
             fields=["title", "points"],
         )
@@ -442,7 +442,7 @@ class AsyncBaseMultiOn:
             api_key="YOUR_API_KEY",
         )
         await client.browse(
-            cmd="Find the top comment of the top post on Hackernews.",
+            cmd="Find the top post on Hackernews.",
             url="https://news.ycombinator.com/",
         )
         """
@@ -563,7 +563,7 @@ class AsyncBaseMultiOn:
             api_key="YOUR_API_KEY",
         )
         await client.retrieve(
-            cmd="Find the top comment of the top post on Hackernews and get its title and points.",
+            cmd="Find the top post on Hackernews and get its title and points.",
             url="https://news.ycombinator.com/",
             fields=["title", "points"],
         )
