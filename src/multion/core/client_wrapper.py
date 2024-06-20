@@ -17,7 +17,7 @@ class BaseClientWrapper:
         headers: typing.Dict[str, str] = {
             "X-Fern-Language": "Python",
             "X-Fern-SDK-Name": "multion",
-            "X-Fern-SDK-Version": "1.3.1",
+            "X-Fern-SDK-Version": "1.3.2",
         }
         headers["X_MULTION_API_KEY"] = self.api_key
         return headers
