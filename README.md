@@ -65,6 +65,32 @@ except multion.core.ApiError as e: # Handle all errors
   print(e.body)
 ```
 
+## MultiOn Agent Tracing
+MultiOn uses AgentOps to provide session replays, metrics, and monitoring for AI agents. MultiOn runs are automatically tracked when an AgentOps API key is provided. You can find your API key in the [AgentOps dashboard](https://app.agentops.ai/).
+
+```python
+multion = MultiOn(
+    api_key=os.environ.get("MULTION_API_KEY"),
+    agentops_api_key=os.environ.get("AGENTOPS_API_KEY"),
+)
+```
+
+![https://github.com/AgentOps-AI/agentops/blob/main/docs/images/agentops-multion-step.gif?raw=true](https://github.com/AgentOps-AI/agentops/blob/main/docs/images/agentops-multion-step.gif?raw=true)
+
+At a high level, AgentOps gives you the ability to monitor LLM calls, costs, latency, agent failures, multi-agent interactions, tool usage session-wide statistics, and more. For more info, check out the [AgentOps Repo.](https://github.com/AgentOps-AI/agentops/)
+
+### Examples
+
+AgentOps provides session drilldowns for viewing MultiOn browse events, LLM calls, and tool usage in real-time. This feature is useful for debugging and understanding how agents interact with users as well as other agents.
+
+#### [Autonomous Web Browsing](https://github.com/AgentOps-AI/agentops/blob/main/examples/multion/Autonomous_web_browsing.ipynb)
+
+#### [Web Browser Agent Tracking](https://github.com/AgentOps-AI/agentops/blob/main/examples/multion/Sample_browsing_agent.ipynb)
+
+#### [Step-by-Step Web Browsing](https://github.com/AgentOps-AI/agentops/blob/main/examples/multion/Step_by_step_web_browsing.ipynb)
+
+#### [Webpage Data Retrieval](https://github.com/AgentOps-AI/agentops/blob/main/examples/multion/Webpage_data_retrieval.ipynb)
+
 ## Advanced
 
 ### Retries
