@@ -45,7 +45,7 @@ client = AsyncMultiOn(
 )
 
 async def main() -> None:
-    await response = client.browse(
+    response = await client.browse(
         url="https://google.com"
     )
 
@@ -65,7 +65,7 @@ except multion.core.ApiError as e: # Handle all errors
   print(e.body)
 ```
 
-## MultiOn Agent Tracing
+## Agent Tracing and Observability 
 MultiOn uses AgentOps to provide session replays, metrics, and monitoring for AI agents. MultiOn runs are automatically tracked when an AgentOps API key is provided. You can find your API key in the [AgentOps dashboard](https://app.agentops.ai/).
 
 ```python
@@ -112,7 +112,7 @@ from multion.client import MultiOn
 client = MultiOn()
 
 # Override retries for a specific method
-client.brwose(url="https://google.com", {
+client.browse(url="https://google.com", {
     max_retries=1
 })
 ```
@@ -130,7 +130,7 @@ client = MultiOn(
 )
 
 # Override timeout for a specific method
-client.brwose(url="https://google.com", {
+client.browse(url="https://google.com", {
     timeout_in_seconds=20.0
 })
 ```
