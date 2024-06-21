@@ -22,6 +22,7 @@ poetry add multion
 Simply import `MultiOn` and start making calls to our API. 
 
 ```python
+import os
 from multion.client import MultiOn
 
 client = MultiOn(
@@ -38,6 +39,7 @@ The SDK also exports an async client so that you can make non-blocking
 calls to our API. 
 
 ```python
+import asyncio
 from multion.client import AsyncMultiOn
 
 client = AsyncMultiOn(
@@ -69,6 +71,8 @@ except multion.core.ApiError as e: # Handle all errors
 MultiOn uses AgentOps to provide session replays, metrics, and monitoring for AI agents. MultiOn runs are automatically tracked when an AgentOps API key is provided. You can find your API key in the [AgentOps dashboard](https://app.agentops.ai/).
 
 ```python
+import os
+from multion.client import MultiOn
 multion = MultiOn(
     api_key=os.environ.get("MULTION_API_KEY"),
     agentops_api_key=os.environ.get("AGENTOPS_API_KEY"),
