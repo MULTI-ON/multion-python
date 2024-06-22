@@ -178,29 +178,29 @@ class BaseMultiOn:
             request_options=request_options,
             omit=OMIT,
         )
-        if 200 <= _response.status_code < 300:
-            return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
-        if _response.status_code == 400:
-            raise BadRequestError(
-                typing.cast(BadRequestResponse, construct_type(type_=BadRequestResponse, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 401:
-            raise UnauthorizedError(
-                typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 402:
-            raise PaymentRequiredError(
-                typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 422:
-            raise UnprocessableEntityError(
-                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 500:
-            raise InternalServerError(
-                typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
-            )
         try:
+            if 200 <= _response.status_code < 300:
+                return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    typing.cast(BadRequestResponse, construct_type(type_=BadRequestResponse, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, body=_response.text)
@@ -302,13 +302,13 @@ class BaseMultiOn:
             request_options=request_options,
             omit=OMIT,
         )
-        if 200 <= _response.status_code < 300:
-            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
-        if _response.status_code == 422:
-            raise UnprocessableEntityError(
-                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
-            )
         try:
+            if 200 <= _response.status_code < 300:
+                return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, body=_response.text)
@@ -463,29 +463,29 @@ class AsyncBaseMultiOn:
             request_options=request_options,
             omit=OMIT,
         )
-        if 200 <= _response.status_code < 300:
-            return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
-        if _response.status_code == 400:
-            raise BadRequestError(
-                typing.cast(BadRequestResponse, construct_type(type_=BadRequestResponse, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 401:
-            raise UnauthorizedError(
-                typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 402:
-            raise PaymentRequiredError(
-                typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 422:
-            raise UnprocessableEntityError(
-                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
-            )
-        if _response.status_code == 500:
-            raise InternalServerError(
-                typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
-            )
         try:
+            if 200 <= _response.status_code < 300:
+                return typing.cast(BrowseOutput, construct_type(type_=BrowseOutput, object_=_response.json()))  # type: ignore
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    typing.cast(BadRequestResponse, construct_type(type_=BadRequestResponse, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    typing.cast(UnauthorizedResponse, construct_type(type_=UnauthorizedResponse, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    typing.cast(PaymentRequiredResponse, construct_type(type_=PaymentRequiredResponse, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    typing.cast(InternalServerErrorResponse, construct_type(type_=InternalServerErrorResponse, object_=_response.json()))  # type: ignore
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, body=_response.text)
@@ -587,13 +587,13 @@ class AsyncBaseMultiOn:
             request_options=request_options,
             omit=OMIT,
         )
-        if 200 <= _response.status_code < 300:
-            return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
-        if _response.status_code == 422:
-            raise UnprocessableEntityError(
-                typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
-            )
         try:
+            if 200 <= _response.status_code < 300:
+                return typing.cast(RetrieveOutput, construct_type(type_=RetrieveOutput, object_=_response.json()))  # type: ignore
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    typing.cast(HttpValidationError, construct_type(type_=HttpValidationError, object_=_response.json()))  # type: ignore
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, body=_response.text)
