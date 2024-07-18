@@ -37,6 +37,7 @@ class SessionsClient:
         *,
         url: str,
         local: typing.Optional[bool] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         use_proxy: typing.Optional[bool] = OMIT,
         browser_params: typing.Optional[CreateSessionInputBrowserParams] = OMIT,
@@ -53,6 +54,9 @@ class SessionsClient:
 
         local : typing.Optional[bool]
             Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -89,6 +93,7 @@ class SessionsClient:
             json={
                 "url": url,
                 "local": local,
+                "agent_id": agent_id,
                 "mode": mode,
                 "use_proxy": use_proxy,
                 "browser_params": browser_params,
@@ -117,6 +122,7 @@ class SessionsClient:
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -139,6 +145,9 @@ class SessionsClient:
 
         temperature : typing.Optional[float]
             The temperature of model
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -169,6 +178,7 @@ class SessionsClient:
                 width=1.1,
             ),
             temperature=1.1,
+            agent_id="string",
             mode="fast",
             include_screenshot=True,
         )
@@ -183,6 +193,7 @@ class SessionsClient:
                 "url": url,
                 "browser_params": browser_params,
                 "temperature": temperature,
+                "agent_id": agent_id,
                 "mode": mode,
                 "include_screenshot": include_screenshot,
                 "stream": True,
@@ -214,6 +225,7 @@ class SessionsClient:
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepRequestBrowserParams] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -236,6 +248,9 @@ class SessionsClient:
 
         temperature : typing.Optional[float]
             The temperature of model
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -269,6 +284,7 @@ class SessionsClient:
                 "url": url,
                 "browser_params": browser_params,
                 "temperature": temperature,
+                "agent_id": agent_id,
                 "mode": mode,
                 "include_screenshot": include_screenshot,
                 "stream": False,
@@ -418,6 +434,7 @@ class AsyncSessionsClient:
         *,
         url: str,
         local: typing.Optional[bool] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         use_proxy: typing.Optional[bool] = OMIT,
         browser_params: typing.Optional[CreateSessionInputBrowserParams] = OMIT,
@@ -434,6 +451,9 @@ class AsyncSessionsClient:
 
         local : typing.Optional[bool]
             Boolean flag to indicate if session to be run locally or in the cloud (Default: False). If set to true, the session will be run locally via your chrome extension. If set to false, the session will be run in the cloud.
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -470,6 +490,7 @@ class AsyncSessionsClient:
             json={
                 "url": url,
                 "local": local,
+                "agent_id": agent_id,
                 "mode": mode,
                 "use_proxy": use_proxy,
                 "browser_params": browser_params,
@@ -498,6 +519,7 @@ class AsyncSessionsClient:
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepStreamRequestBrowserParams] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -520,6 +542,9 @@ class AsyncSessionsClient:
 
         temperature : typing.Optional[float]
             The temperature of model
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -550,6 +575,7 @@ class AsyncSessionsClient:
                 width=1.1,
             ),
             temperature=1.1,
+            agent_id="string",
             mode="fast",
             include_screenshot=True,
         )
@@ -564,6 +590,7 @@ class AsyncSessionsClient:
                 "url": url,
                 "browser_params": browser_params,
                 "temperature": temperature,
+                "agent_id": agent_id,
                 "mode": mode,
                 "include_screenshot": include_screenshot,
                 "stream": True,
@@ -595,6 +622,7 @@ class AsyncSessionsClient:
         url: typing.Optional[str] = OMIT,
         browser_params: typing.Optional[SessionsStepRequestBrowserParams] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -617,6 +645,9 @@ class AsyncSessionsClient:
 
         temperature : typing.Optional[float]
             The temperature of model
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -650,6 +681,7 @@ class AsyncSessionsClient:
                 "url": url,
                 "browser_params": browser_params,
                 "temperature": temperature,
+                "agent_id": agent_id,
                 "mode": mode,
                 "include_screenshot": include_screenshot,
                 "stream": False,

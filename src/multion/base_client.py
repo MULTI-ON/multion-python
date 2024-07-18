@@ -104,6 +104,7 @@ class BaseMultiOn:
         max_steps: typing.Optional[int] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         use_proxy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None
@@ -135,6 +136,9 @@ class BaseMultiOn:
 
         temperature : typing.Optional[float]
             The temperature of model
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -172,6 +176,7 @@ class BaseMultiOn:
                 "max_steps": max_steps,
                 "include_screenshot": include_screenshot,
                 "temperature": temperature,
+                "agent_id": agent_id,
                 "mode": mode,
                 "use_proxy": use_proxy,
             },
@@ -389,6 +394,7 @@ class AsyncBaseMultiOn:
         max_steps: typing.Optional[int] = OMIT,
         include_screenshot: typing.Optional[bool] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        agent_id: typing.Optional[str] = OMIT,
         mode: typing.Optional[Mode] = OMIT,
         use_proxy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None
@@ -420,6 +426,9 @@ class AsyncBaseMultiOn:
 
         temperature : typing.Optional[float]
             The temperature of model
+
+        agent_id : typing.Optional[str]
+            The agent id to use for the session.
 
         mode : typing.Optional[Mode]
 
@@ -457,6 +466,7 @@ class AsyncBaseMultiOn:
                 "max_steps": max_steps,
                 "include_screenshot": include_screenshot,
                 "temperature": temperature,
+                "agent_id": agent_id,
                 "mode": mode,
                 "use_proxy": use_proxy,
             },

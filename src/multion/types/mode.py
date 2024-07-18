@@ -2,4 +2,4 @@
 
 import typing
 
-Mode = typing.Union[typing.Literal["fast", "standard", "ludicrous"], typing.Any]
+Mode = typing.Union[typing.Literal["fast", "standard"], typing.Any]
