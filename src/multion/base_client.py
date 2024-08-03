@@ -19,6 +19,7 @@ from .errors.unprocessable_entity_error import UnprocessableEntityError
 from .sessions.client import AsyncSessionsClient, SessionsClient
 from .types.bad_request_response import BadRequestResponse
 from .types.browse_output import BrowseOutput
+from .types.format import Format
 from .types.http_validation_error import HttpValidationError
 from .types.internal_server_error_response import InternalServerErrorResponse
 from .types.mode import Mode
@@ -219,7 +220,7 @@ class BaseMultiOn:
         session_id: typing.Optional[str] = OMIT,
         local: typing.Optional[bool] = OMIT,
         fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        format: typing.Optional[Format] = OMIT,
         max_items: typing.Optional[float] = OMIT,
         full_page: typing.Optional[bool] = OMIT,
         render_js: typing.Optional[bool] = OMIT,
@@ -249,8 +250,7 @@ class BaseMultiOn:
         fields : typing.Optional[typing.Sequence[str]]
             List of fields (columns) to be outputted in data.
 
-        format : typing.Optional[typing.Literal["json"]]
-            Format of response data. (Default: json)
+        format : typing.Optional[Format]
 
         max_items : typing.Optional[float]
             Maximum number of data items to retrieve. (Default: 100)
@@ -509,7 +509,7 @@ class AsyncBaseMultiOn:
         session_id: typing.Optional[str] = OMIT,
         local: typing.Optional[bool] = OMIT,
         fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        format: typing.Optional[typing.Literal["json"]] = OMIT,
+        format: typing.Optional[Format] = OMIT,
         max_items: typing.Optional[float] = OMIT,
         full_page: typing.Optional[bool] = OMIT,
         render_js: typing.Optional[bool] = OMIT,
@@ -539,8 +539,7 @@ class AsyncBaseMultiOn:
         fields : typing.Optional[typing.Sequence[str]]
             List of fields (columns) to be outputted in data.
 
-        format : typing.Optional[typing.Literal["json"]]
-            Format of response data. (Default: json)
+        format : typing.Optional[Format]
 
         max_items : typing.Optional[float]
             Maximum number of data items to retrieve. (Default: 100)
